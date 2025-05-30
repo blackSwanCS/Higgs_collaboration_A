@@ -32,6 +32,7 @@ def tes_fitter(
 
     return fit_function
 
+
 def jes_fitter(
     model,
     train_set,
