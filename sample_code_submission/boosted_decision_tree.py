@@ -1,15 +1,16 @@
 from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import multiprocessing
 
 class BoostedDecisionTree:
     """
     This class implements a boosted devision tree model
     """
 
-    def __init__(self, train_data):
+    def __init__(self):
         # Initialize the model and scaler
-        self.__model = XGBClassifier()
+        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count())
         self.__scaler = StandardScaler()
 
     def fit(self, train_data, labels, weights=None):
