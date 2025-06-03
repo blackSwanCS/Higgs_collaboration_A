@@ -2,7 +2,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
 
-
 class NeuralNetwork:
     """
     This Dummy class implements a neural network classifier
@@ -30,7 +29,7 @@ class NeuralNetwork:
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
         self.model.fit(
-            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
+            X_train, y_train, sample_weight=weights_train, epochs=32, verbose=2
         )
 
     def predict(self, test_data):
