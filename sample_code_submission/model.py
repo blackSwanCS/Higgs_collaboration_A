@@ -2,8 +2,8 @@
 # Dummy Sample Submission
 # ------------------------------
 
-BDT = True
-NN = False
+BDT = False
+NN = True
 
 from statistical_analysis import calculate_saved_info, compute_mu
 import numpy as np
