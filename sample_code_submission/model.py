@@ -141,7 +141,7 @@ class Model:
         print(f"DEBUG: model_type = {repr(model_type)}")
 
         if model_type == "BDT":
-            from boosted_decision_tree import BoostedDecisionTree
+            from Higgs_collaboration_A.sample_code_submission.boosted_decision_tree import BoostedDecisionTree
 
             self.model = BoostedDecisionTree(train_data=self.training_set["data"])
         elif model_type == "NN":

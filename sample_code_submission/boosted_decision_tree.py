@@ -1,38 +1,39 @@
 from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import multiprocessing
 
 class BoostedDecisionTree:
     """
     This class implements a boosted devision tree model
     """
 
-    def __init__(self, train_data):
+    def __init__(self):
         # Initialize the model and scaler
-        self.model = XGBClassifier()
-        self.scaler = StandardScaler()
+        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count())
+        self.__scaler = StandardScaler()
 
     def fit(self, train_data, labels, weights=None):
 
         # Set the scaler to look at the data
-        self.scaler.fit_transform(train_data)
+        self.__scaler.fit_transform(train_data)
 
         # Resize the data using the scaler (mean 0, std 1)
-        X_train_data = self.scaler.transform(train_data)
+        X_train_data = self.__scaler.transform(train_data)
 
         # Fit the model to the training data
-        self.model.fit(X_train_data, labels, weights)
+        self.__model.fit(X_train_data, labels, weights)
 
     def predict(self, test_data):
 
         # Resize the test data using the scaler
-        test_data = self.scaler.transform(test_data)
+        test_data = self.__scaler.transform(test_data)
 
         # Predict the probabilities for the positive class
-        return self.model.predict_proba(test_data)[:, 1]
+        return self.__model.predict_proba(test_data)[:, 1]
 
-    def __significance__(self,y_test,y_pred_xgb,weights_test):
-        def amsasimov(s_in,b_in): # asimov significance arXiv:1007.1727 eq. 97 (reduces to s/sqrt(b) if s<<b)
+    def significance(self, test_data, weights=None):
+        def __amsasimov(s_in,b_in): # asimov significance arXiv:1007.1727 eq. 97 (reduces to s/sqrt(b) if s<<b)
             # if b==0 ams is undefined, but return 0 without warning for convenience (hack)
             s=np.copy(s_in)
             b=np.copy(b_in)
@@ -45,7 +46,7 @@ class BoostedDecisionTree:
                 return float(ams)
             else:
                 return  ams
-        def significance_vscore(y_true, y_score, sample_weight=None):
+        def __significance_vscore(y_true, y_score, sample_weight=None):
             if sample_weight is None:
                 # Provide a default value of 1.
                 sample_weight = np.full(len(y_true), 1.)
@@ -65,15 +66,14 @@ class BoostedDecisionTree:
             b_cumul = np.cumsum(b_hist[::-1])[::-1]
 
             # Compute significance
-            significance=amsasimov(s_cumul,b_cumul)
+            significance=__amsasimov(s_cumul,b_cumul)
 
             # Find the bin with the maximum significance
             max_value = np.max(significance)
 
             return significance
-        vamsasimov_xgb=significance_vscore(y_true=y_test, y_score=y_pred_xgb, sample_weight=weights_test)
+        y_test = self.__scaler.transform(test_data)
+        y_pred_xgb = self.predict(test_data)
+        vamsasimov_xgb=__significance_vscore(y_true=y_test, y_score=y_pred_xgb, sample_weight=weights)
         significance_xgb = np.max(vamsasimov_xgb)
-        return(significance_xgb)
-
-    #We need to show the AUC and significance and then modify the self.model in order to maximize the significance 
-     # Modifier les indices pour changer le nombre de données d'entrainement l62 de model.py
+        return significance_xgb
