@@ -6,6 +6,7 @@ BDT = False
 NN = True
 
 from statistical_analysis import calculate_saved_info, compute_mu
+import os
 import numpy as np
 
 
@@ -13,10 +14,10 @@ class Model:
     """
     This is a model class to be submitted by the participants in their submission.
 
-    This class should consists of the following functions
+    This class should consist of the following functions:
     1) init :
-        takes 3 arguments: train_set systematics and model_type.
-        can be used for initializing variables, classifier etc.
+        takes 3 arguments: train_set, systematics, and model_type.
+        can be used for initializing variables, classifier, etc.
     2) fit :
         takes no arguments
         can be used to train a classifier
@@ -25,39 +26,30 @@ class Model:
         can be used to get predictions of the test set.
         returns a dictionary
 
-    Note:   Add more methods if needed e.g. save model, load pre-trained model etc.
-            It is the participant's responsibility to make sure that the submission
-            class is named "Model" and that its constructor arguments remains the same.
-            The ingestion program initializes the Model class and calls fit and predict methods
-
-            When you add another file with the submission model e.g. a trained model to be loaded and used,
-            load it in the following way:
-
-            # get to the model directory (your submission directory)
-            model_dir = os.path.dirname(os.path.abspath(__file__))
-
-            your trained model file is now in model_dir, you can load it from here
+    Note: Add more methods if needed e.g. save model, load pre-trained model, etc.
     """
 
-    def __init__(self, get_train_set=None, systematics=None, model_type="sample_model"):
+    def __init__(self, get_train_set=None, systematics=None, model_type="NN"):
         """
         Model class constructor
 
         Params:
-            train_set:
-                a dictionary with data, labels, weights and settings
-
-            systematics:
-                a class which you can use to get a dataset with systematics added
-                See sample submission for usage of systematics
-
-
+            get_train_set: function to retrieve the training set
+            systematics: a function (or class) to apply systematics to the dataset.
+                         If None, an identity function is used.
+            model_type: type of model to use (e.g., "NN", "BDT", etc.)
         Returns:
             None
         """
+        # Ensure systematics is defined even if not provided.
+        if systematics is None:
+            # If no systematics provided, use identity (no change).
+            self.systematics = lambda x: x
+        else:
+            self.systematics = systematics
 
+        # Initialize datasets
         indices = np.arange(15000)
-
         np.random.shuffle(indices)
 
         train_indices = indices[:5000]
@@ -65,32 +57,15 @@ class Model:
         valid_indices = indices[10000:]
 
         training_df = get_train_set(selected_indices=train_indices)
-
         self.training_set = {
             "labels": training_df.pop("labels"),
             "weights": training_df.pop("weights"),
             "detailed_labels": training_df.pop("detailed_labels"),
             "data": training_df,
         }
-
         del training_df
 
-        self.systematics = systematics
-
-        print("Training Data: ", self.training_set["data"].shape)
-        print("Training Labels: ", self.training_set["labels"].shape)
-        print("Training Weights: ", self.training_set["weights"].shape)
-        print(
-            "sum_signal_weights: ",
-            self.training_set["weights"][self.training_set["labels"] == 1].sum(),
-        )
-        print(
-            "sum_bkg_weights: ",
-            self.training_set["weights"][self.training_set["labels"] == 0].sum(),
-        )
-
         valid_df = get_train_set(selected_indices=valid_indices)
-
         self.valid_set = {
             "labels": valid_df.pop("labels"),
             "weights": valid_df.pop("weights"),
@@ -99,77 +74,51 @@ class Model:
         }
         del valid_df
 
-        print()
-        print("Valid Data: ", self.valid_set["data"].shape)
-        print("Valid Labels: ", self.valid_set["labels"].shape)
-        print("Valid Weights: ", self.valid_set["weights"].shape)
-        print(
-            "sum_signal_weights: ",
-            self.valid_set["weights"][self.valid_set["labels"] == 1].sum(),
-        )
-        print(
-            "sum_bkg_weights: ",
-            self.valid_set["weights"][self.valid_set["labels"] == 0].sum(),
-        )
-
         holdout_df = get_train_set(selected_indices=holdout_indices)
-
         self.holdout_set = {
             "labels": holdout_df.pop("labels"),
             "weights": holdout_df.pop("weights"),
             "detailed_labels": holdout_df.pop("detailed_labels"),
             "data": holdout_df,
         }
-
         del holdout_df
 
-        print()
-        print("Holdout Data: ", self.holdout_set["data"].shape)
-        print("Holdout Labels: ", self.holdout_set["labels"].shape)
-        print("Holdout Weights: ", self.holdout_set["weights"].shape)
-        print(
-            "sum_signal_weights: ",
-            self.holdout_set["weights"][self.holdout_set["labels"] == 1].sum(),
-        )
-        print(
-            "sum_bkg_weights: ",
-            self.holdout_set["weights"][self.holdout_set["labels"] == 0].sum(),
-        )
-        print(" \n ")
+        # Define directory to save/load the model
+        self.model_dir = os.path.dirname(os.path.abspath(__file__))
+        self.model_path = os.path.join(self.model_dir, "saved_model")
+        self.model_type = model_type
 
-        print("Training Data: ", self.training_set["data"].shape)
-        print(f"DEBUG: model_type = {repr(model_type)}")
-
-        if model_type == "BDT":
-            from boosted_decision_tree import BoostedDecisionTree
-
-            self.model = BoostedDecisionTree(train_data=self.training_set["data"])
-        elif model_type == "NN":
-            from neural_network import NeuralNetwork
-
-            self.model = NeuralNetwork(train_data=self.training_set["data"])
-        elif model_type == "sample_model":
-            from sample_model import SampleModel
-
-            self.model = SampleModel()
+        # Vérifiez si un modèle sauvegardé existe
+        model_file = os.path.join(self.model_path, "model.h5")
+        if os.path.exists(self.model_path) and os.path.exists(model_file):
+            print("Loading pre-trained model...")
+            self.load_model()
+            self.is_trained = True  # Indique que le modèle est déjà entraîné
         else:
-            print(f"model_type {model_type} not found")
-            raise ValueError(f"model_type {model_type} not found")
-        self.name = model_type
+            print("No pre-trained model found. Initializing a new model.")
+            self.initialize_model()
+            self.is_trained = False  # Indique que le modèle doit être entraîné
 
-        print(f" Model is { self.name}")
+        # Set the name attribute
+        self.name = model_type  # Use the model type as the name
 
     def fit(self):
         """
+        Train the model and save it after training.
+
         Params:
             None
-
-        Functionality:
-            this function can be used to train a model
 
         Returns:
             None
         """
+        if self.is_trained:
+            print("Model is already trained. Skipping training.")
+            return
+
+        # Vérifiez que le modèle est initialisé
+        if self.model is None:
+            raise ValueError("Model is not initialized. Ensure `initialize_model` or `load_model` is called.")
 
         balanced_set = self.training_set.copy()
 
@@ -181,17 +130,18 @@ class Model:
         )
 
         for i in range(len(class_weights_train)):  # loop on B then S target
-            # training dataset: equalize number of background and signal
             weights_train[train_labels == i] *= (
                 max(class_weights_train) / class_weights_train[i]
             )
-            # test dataset : increase test weight to compensate for sampling
 
         balanced_set["weights"] = weights_train
 
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
+
+        # Save the trained model
+        self.save_model()
 
         self.holdout_set = self.systematics(self.holdout_set)
 
@@ -259,24 +209,24 @@ class Model:
 
     def predict(self, test_set):
         """
-        Params:
-            test_set
+        Make predictions on the test set.
 
-        Functionality:
-            this function can be used for predictions using the test sets
+        Params:
+            test_set: dictionary containing test data and weights
 
         Returns:
-            dict with keys
+            dict with keys:
                 - mu_hat
                 - delta_mu_hat
                 - p16
                 - p84
         """
-
         test_data = test_set["data"]
         test_weights = test_set["weights"]
 
         predictions = self.model.predict(test_data)
+
+        from statistical_analysis import compute_mu
 
         result_mu_cal = compute_mu(predictions, test_weights, self.saved_info)
 
@@ -290,3 +240,37 @@ class Model:
         }
 
         return result
+
+    def save_model(self):
+        """
+        Save the trained model to the model directory.
+        """
+        if not os.path.exists(self.model_path):
+            os.makedirs(self.model_path)
+        self.model.save_model(self.model_path)
+        print(f"Model saved to {self.model_path}")
+
+    def load_model(self):
+        """
+        Load a pre-trained model from the model directory.
+        """
+        from neural_network import NeuralNetwork
+
+        self.model = NeuralNetwork()  # Initialisez sans données d'entraînement
+        self.model.load_model(self.model_path)
+
+        # Vérifiez que le modèle est bien chargé
+        if self.model.model is None:
+            raise ValueError("Failed to load the model. Ensure 'model.h5' exists and is valid.")
+        print(f"Model loaded from {self.model_path}")
+
+    def initialize_model(self):
+        """
+        Initialize a new model based on the model type.
+        """
+        if self.model_type == "NN":
+            from neural_network import NeuralNetwork
+            # Pass training data so that _initialize_model is called
+            self.model = NeuralNetwork(self.training_set["data"])
+        else:
+            raise ValueError(f"Unknown model type: {self.model_type}")
