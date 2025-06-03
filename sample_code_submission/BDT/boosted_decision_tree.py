@@ -17,6 +17,19 @@ def get_best_model():
     return BoostedDecisionTree(params)
 
 
+
+BEST_BDT_MODEL_PATH = "best_bdt_model.json"
+THREADS_NUMBER = multiprocessing.cpu_count()
+
+
+def get_best_model():
+    #model = BoostedDecisionTree()
+    #model.load_model(BEST_BDT_MODEL_PATH)
+    #return model
+    params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+    return BoostedDecisionTree(params)
+
+
 class BDT_Status(Enum):
     NOT_FITTED = auto()
     FITTED = auto()
@@ -36,13 +49,6 @@ class BoostedDecisionTree:
             self.__model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
         self.__scaler = StandardScaler()        
         self.__status = BDT_Status.NOT_FITTED
-    
-    def load_model(self, model_path):
-        """
-        Load a pre-trained model from the specified path.
-        """
-        self.__model.load_model(model_path)
-        self.__status = BDT_Status.FITTED
 
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
@@ -107,6 +113,13 @@ class BoostedDecisionTree:
             sample_weight=self.__test_weights
         )
         return np.max(vamsasimov_xgb)
+
+    def load_model(self, model_path):
+        """
+        Load a pre-trained model from the specified path.
+        """
+        self.__model.load_model(model_path)
+        self.__status = BDT_Status.FITTED
 
     def save(self):
         if self.__status == BDT_Status.NOT_FITTED:
