@@ -141,9 +141,8 @@ class Model:
         print(f"DEBUG: model_type = {repr(model_type)}")
 
         if model_type == "BDT":
-            from Higgs_collaboration_A.sample_code_submission.boosted_decision_tree import BoostedDecisionTree
-
-            self.model = BoostedDecisionTree(train_data=self.training_set["data"])
+            from boosted_decision_tree import BoostedDecisionTree
+            self.model = BoostedDecisionTree(self.training_set)
         elif model_type == "NN":
             from neural_network import NeuralNetwork
 

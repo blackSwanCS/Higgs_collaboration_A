@@ -2,42 +2,49 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import multiprocessing
+from enum import Enum, auto
+
+
+class BDT_Status(Enum):
+    NOT_FITTED = auto()
+    FITTED = auto()
+    PREDICTED = auto()
 
 
 class BoostedDecisionTree:
     """
-    This Dummy class implements a decision tree classifier
-    change the code in the fit method to implement a decision tree classifier
-
-
+    This class implements a boosted decision tree model using XGBoost
     """
-
 
     def __init__(self):
         # Initialize the model and scaler
         self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count())
-        self.__scaler = StandardScaler()
+        self.__scaler = StandardScaler()        
+        self.__status == BDT_Status.NOT_FITTED
 
     def fit(self, train_data, labels, weights=None):
-
-        # Set the scaler to look at the data
+        if self.__status != BDT_Status.NOT_FITTED:
+            raise ValueError("Model has already been fitted. Please create a new instance to fit again.")
         self.__scaler.fit_transform(train_data)
+        self.__train_data = self.__scaler.transform(train_data)
+        self.__labels = labels
+        self.__weights = weights
 
-        # Resize the data using the scaler (mean 0, std 1)
-        X_train_data = self.__scaler.transform(train_data)
+        self.__model.fit(self.__train_data, self.__labels, self.__weights)
 
-        # Fit the model to the training data
-        self.__model.fit(X_train_data, labels, weights)
-
+        self.__status == BDT_Status.FITTED
+    
     def predict(self, test_data):
+        if self.__status == BDT_Status.NOT_FITTED:
+            raise ValueError("Model has not been fitted yet. Please call fit() before predict().")
+        self.__test_data = self.__scaler.transform(test_data)
+        self.__predicted_data = self.__model.predict(self.__test_data)[:,1]
+        self.__status = BDT_Status.PREDICTED
+        return self.__predicted_data
 
-        # Resize the test data using the scaler
-        test_data = self.__scaler.transform(test_data)
-
-        # Predict the probabilities for the positive class
-        return self.__model.predict_proba(test_data)[:, 1]
-
-    def significance(self, test_data, weights=None):
+    def significance(self):
+        if self.__status != BDT_Status.PREDICTED:
+            raise ValueError("Model has not been fitted or predict yet. Please call fit() and predict() before significance().")
         def __amsasimov(s_in,b_in): # asimov significance arXiv:1007.1727 eq. 97 (reduces to s/sqrt(b) if s<<b)
             # if b==0 ams is undefined, but return 0 without warning for convenience (hack)
             s=np.copy(s_in)
@@ -77,9 +84,7 @@ class BoostedDecisionTree:
             max_value = np.max(significance)
 
             return significance
-        y_test = self.__scaler.transform(test_data)
-        y_pred_xgb = self.predict(test_data)
-        vamsasimov_xgb=__significance_vscore(y_true=y_test, y_score=y_pred_xgb, sample_weight=weights)
+        vamsasimov_xgb=__significance_vscore(y_true=self.__test_data, y_score=self.__predicted_data, sample_weight=self.__weights)
         significance_xgb = np.max(vamsasimov_xgb)
         return significance_xgb
 
