@@ -142,7 +142,7 @@ class Model:
 
         if model_type == "BDT":
             from BDT.boosted_decision_tree import BoostedDecisionTree
-            self.model = BoostedDecisionTree(self.training_set)
+            self.model = BoostedDecisionTree()
         elif model_type == "NN":
             from neural_network import NeuralNetwork
 
