@@ -110,7 +110,7 @@ import matplotlib.pyplot as plt
 def neg_ll(mu, n_obs, S, B):
 
     n_pred = mu * S + B
-    n_pred = np.clip(n_pred, 1e-10, None)  # éviter d'avoir log(0)
+    n_pred = np.clip(n_pred, 1e-10, None)  # to prevent log(0)
     neg_ll = -np.sum(n_obs * np.log(n_pred) - n_pred)
 
     return neg_ll
@@ -126,8 +126,8 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     m.limits["mu"] = (0, None)
     m.errordef = Minuit.LIKELIHOOD
 
-    m.migrad()  # calcule le mini
-    m.hesse()  # calcule de la hessienne
+    m.migrad()  # computes the minimum
+    m.hesse()  # computes the hessian
 
     return m.values["mu"], m.errors["mu"]
 
@@ -141,7 +141,7 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     mu_vals = np.linspace(0, 3, 200)
     nll_vals = [neg_ll(mu) for mu in mu_vals]
 
-    # trouve le minimum (pour plot ΔNLL)
+    # finds the minimum (to plot ΔNLL)
     nll_min = min(nll_vals)
     delta_nll = [val - nll_min for val in nll_vals]
 
