@@ -59,6 +59,13 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             mu,
         )
 
+    elif method == "Binned_Likelihood" :
+        mu, del_mu_tot = likelihood_fit_mu_binned(
+            score,
+            saved_info["label"],
+            weight
+        )
+
     return {
         "mu_hat": mu,
         "del_mu_stat": del_mu_stat,
@@ -145,11 +152,11 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
 
             ams[i] = np.sqrt(2 * ((gamma + beta) * np.log(1 + gamma / beta) - gamma))
 
-        # Find the minimum of delta_mu
+        # Find the minimum of AMS
         best_idx = np.argmax(ams)
         best_threshold = threshold[best_idx]
 
-        # Uncomment to plot delta_mu
+        # Uncomment to plot AMS
         plt.plot(threshold, ams, label="ams")
         plt.axvline(
             best_threshold,
@@ -182,6 +189,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         "tes_fit": tes_fitter(model, holdout_set),
         "jes_fit": jes_fitter(model, holdout_set),
         "best_threshold": best_threshold,
+        "label" : label
     }
 
     print("saved_info", saved_info)
@@ -247,3 +255,33 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+
+
+def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
+
+    bins=np.linspace(0, 1, 11)
+
+    # Masks
+    signal_mask = label == 1
+    background_mask = label == 0
+
+    # Binned histograms
+    S_hist, _ = np.histogram(score[signal_mask], bins=bins, weights=weights[signal_mask])
+    B_hist, _ = np.histogram(score[background_mask], bins=bins, weights=weights[background_mask])
+    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+
+    # Binned negative log-likelihood function
+    def neg_ll(mu):
+        pred = mu * S_hist + B_hist
+        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
+        return -np.sum(N_obs * np.log(pred) - pred)
+
+    # Fit using Minuit
+    m = Minuit(neg_ll, mu=mu_init)
+    m.limits["mu"] = (0, None)
+    m.errordef = Minuit.LIKELIHOOD
+    m.migrad()
+    m.hesse()
+
+    return m.values["mu"], m.errors["mu"]
