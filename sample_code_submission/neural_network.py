@@ -10,7 +10,6 @@ class NeuralNetwork:
 
 
     """
-
     def __init__(self, train_data):
         self.model = Sequential()
 
@@ -26,13 +25,15 @@ class NeuralNetwork:
         )
         #Simule la fonction de perte
         self.scaler = StandardScaler()
+        #nouveau paramètres: 
+        self.epochs = 5
 
     def fit(self, train_data, y_train, weights_train=None):
 
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
         self.model.fit(
-            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
+            X_train, y_train, sample_weight=weights_train, epochs=self.epochs, verbose=2
         )
     #epochs = nombre d'entraînement qu'on va faire
     #verbose = débugs, informations sur les entraînements, fonction de coût.
