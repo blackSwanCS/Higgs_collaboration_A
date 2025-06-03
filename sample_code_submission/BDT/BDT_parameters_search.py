@@ -31,6 +31,7 @@ def evaluate_significance(params, train_data, train_labels, train_weights, val_d
     print(f"Fitting time: {end_time - start_time:.2f} seconds")
     model.predict(val_data, labels=val_labels, weights=val_weights) 
     significance = model.significance()
+    model.save()
     return significance
 
 if __name__ == "__main__":
@@ -65,18 +66,20 @@ if __name__ == "__main__":
             "eval_metric": "logloss"
         }
 #        print(f"Testing params: {params}")
+        params = {'n_estimators': np.int64(215), 'max_depth': np.int64(5), 'max_leaves': np.int64(0), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+
         significance = evaluate_significance(
             params,
             train_data, train_labels, train_weights,
             val_data, val_labels, val_weights
         )
-        t=time.time()
-        excel[i]=[n_estimators,max_depth,eta,subsample,t,significance]
-        i+=1
+        
+        
 #        print(f"Significance: {significance:.4f}")
         if significance > best_significance:
             best_significance = significance
             best_params = params
+        break
 
     print("\nBest parameters:")
     print(best_params)

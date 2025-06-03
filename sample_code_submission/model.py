@@ -188,9 +188,11 @@ class Model:
 
         balanced_set["weights"] = weights_train
 
+        """
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
+        """
 
         self.holdout_set = self.systematics(self.holdout_set)
 
