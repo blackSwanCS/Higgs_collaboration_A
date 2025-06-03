@@ -3,6 +3,7 @@ from HiggsML.datasets import download_dataset
 from boosted_decision_tree import BoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
+from time import time 
 
 def get_data():
     data = download_dataset("blackSwan_data")
@@ -23,7 +24,10 @@ def get_data():
 
 def evaluate_significance(params, train_data, train_labels, train_weights, val_data, val_labels, val_weights):
     model = BoostedDecisionTree(params)
+    start_time = time()
     model.fit(train_data, train_labels, train_weights)
+    end_time = time()
+    print(f"Fitting time: {end_time - start_time:.2f} seconds")
     model.predict(val_data, labels=val_labels, weights=val_weights) 
     significance = model.significance()
     return significance
@@ -50,7 +54,6 @@ if __name__ == "__main__":
             "max_depth": max_depth,
             "max_leaves": 0,
             "objective": "binary:logistic",
-            "use_label_encoder": False,
             "eval_metric": "logloss"
         }
 #        print(f"Testing params: {params}")
