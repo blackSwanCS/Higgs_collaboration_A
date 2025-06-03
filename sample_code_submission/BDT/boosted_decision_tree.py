@@ -1,5 +1,6 @@
 from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import roc_auc_score
 import numpy as np
 import multiprocessing
 from enum import Enum, auto
@@ -115,6 +116,9 @@ class BoostedDecisionTree:
             sample_weight=self.__test_weights,
         )
         return np.max(vamsasimov_xgb)
+    
+    def auc(self):
+        return roc_auc_score(y_true=self.__test_labels, y_score=self.__predicted_data,sample_weight=self.__test_weights)
 
     def load_model(self, model_path):
         """
