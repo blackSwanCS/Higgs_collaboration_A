@@ -15,10 +15,11 @@ class BoostedDecisionTree:
     """
     This class implements a boosted decision tree model using XGBoost
     """
-    def __init__(self, params):
+
+    def __init__(self):
         # Initialize the model and scaler
-        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count(), **params)
-        self.__scaler = StandardScaler()
+        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count())
+        self.__scaler = StandardScaler()        
         self.__status == BDT_Status.NOT_FITTED
 
     def fit(self, train_data, labels, weights=None):
@@ -41,10 +42,11 @@ class BoostedDecisionTree:
         self.__status = BDT_Status.PREDICTED
         return self.__predicted_data
 
-    def significance(self, test_data, weights=None):
+    def significance(self):
         if self.__status != BDT_Status.PREDICTED:
             raise ValueError("Model has not been fitted or predict yet. Please call fit() and predict() before significance().")
-        def __amsasimov(s_in,b_in):
+        def __amsasimov(s_in,b_in): # asimov significance arXiv:1007.1727 eq. 97 (reduces to s/sqrt(b) if s<<b)
+            # if b==0 ams is undefined, but return 0 without warning for convenience (hack)
             s=np.copy(s_in)
             b=np.copy(b_in)
             s=np.where( (b_in == 0) , 0., s_in)
