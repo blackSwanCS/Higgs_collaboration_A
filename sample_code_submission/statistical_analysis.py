@@ -66,6 +66,13 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
         1.0, 1.0, 1.0
     )
 
+    elif method == "Binned_Likelihood" :
+        mu, del_mu_tot = likelihood_fit_mu_binned(
+            score,
+            saved_info["label"],
+            weight
+        )
+
     return {
         "mu_hat": mu,
         "del_mu_stat": del_mu_stat,
@@ -74,7 +81,7 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
     }
 
 
-def calculate_saved_info(model, holdout_set, method = "Mu"):
+def calculate_saved_info(model, holdout_set, method="AMS"):
     """
     Calculate the saved_info dictionary for mu calculation
     Replace with actual calculations
@@ -88,20 +95,20 @@ def calculate_saved_info(model, holdout_set, method = "Mu"):
     best_threshold = 0
 
     # Chose an arbitrary cutoff
-    if method == "Arbitrary" :
+    if method == "Arbitrary":
 
         best_threshold = 0.5
-        
+
     # Chose the cutoff that minimises deltaMu
-    elif method == "Mu" :
+    elif method == "Mu":
 
         # We calculate del_mu for many thresholds between 0 and 1
-        threshold = np.linspace(0.01,0.99,100)
-        del_mu = [0]*100
-        mu_list = [0]*100
+        threshold = np.linspace(0.01, 0.99, 100)
+        del_mu = [0] * 100
+        mu_list = [0] * 100
 
-        #Iter through thresholds
-        for i, t in enumerate(threshold) :
+        # Iter through thresholds
+        for i, t in enumerate(threshold):
 
             score2 = score.flatten() > t
             score2 = score2.astype(int)
@@ -113,9 +120,7 @@ def calculate_saved_info(model, holdout_set, method = "Mu"):
             beta = np.sum(holdout_set["weights"] * score2 * (1 - label))
 
             mu = (np.sum(score2 * holdout_set["weights"]) - beta) / gamma
-            del_mu_stat = (
-                np.sqrt(beta + gamma) / gamma
-            )
+            del_mu_stat = np.sqrt(beta + gamma) / gamma
             del_mu_tot = np.sqrt(del_mu_stat**2)
 
             mu_list[i] = mu
@@ -124,6 +129,54 @@ def calculate_saved_info(model, holdout_set, method = "Mu"):
         # Find the minimum of delta_mu
         best_idx = np.argmin(del_mu)
         best_threshold = threshold[best_idx]
+
+        # Uncomment to plot delta_mu
+        # plt.plot(threshold, del_mu, label='del_mu')
+        # plt.plot(threshold, mu_list, label='mu')
+        # plt.axvline(best_threshold, color='green', linestyle='--', label=f'Best threshold = {best_threshold:.3f}')
+        # plt.xlabel("Threshold")
+        # plt.ylabel("Del_MU")
+        # plt.grid()
+        # plt.title("Del_mu and Mu vs Threshold")
+        # plt.legend()
+        # plt.show()
+
+    elif method == "AMS":
+        threshold = np.linspace(0.01, 0.99, 100)
+        ams = [0] * 100
+
+        # Iter through thresholds
+        for i, t in enumerate(threshold):
+
+            score2 = score.flatten() > t
+            score2 = score2.astype(int)
+
+            label = holdout_set["labels"]
+
+            gamma = np.sum(holdout_set["weights"] * score2 * label)
+
+            beta = np.sum(holdout_set["weights"] * score2 * (1 - label))
+
+            ams[i] = np.sqrt(2 * ((gamma + beta) * np.log(1 + gamma / beta) - gamma))
+
+        # Find the minimum of AMS
+        best_idx = np.argmax(ams)
+        best_threshold = threshold[best_idx]
+
+        # Uncomment to plot AMS
+        plt.plot(threshold, ams, label="ams")
+        plt.axvline(
+            best_threshold,
+            color="green",
+            linestyle="--",
+            label=f"Best threshold = {best_threshold:.3f}",
+        )
+        plt.xlabel("Threshold")
+        plt.ylabel("AMS")
+        plt.grid()
+        plt.title("AMS vs Threshold")
+        plt.legend()
+        plt.show()
 
     # Calculate saved_info with this optimised cutoff
     score = score.flatten() > best_threshold
@@ -142,7 +195,8 @@ def calculate_saved_info(model, holdout_set, method = "Mu"):
         "gamma": gamma,
         "tes_fit": tes_fitter(model, holdout_set),
         "jes_fit": jes_fitter(model, holdout_set),
-        "best_threshold": best_threshold
+        "best_threshold": best_threshold,
+        "label" : label
     }
 
     print("saved_info", saved_info)
@@ -230,8 +284,34 @@ def likelihood_fit_mu_tes_jes(n_obs, tes_fit, jes_fit, mu_init=1.0, tes_init=1.0
     m.limits["tes"] = (0.5, 1.5)  # Adjust as appropriate
     m.limits["jes"] = (0.5, 1.5)  # Adjust as appropriate
     m.errordef = Minuit.LIKELIHOOD
-
     m.migrad()
     m.hesse()
 
     return m.values["mu"], m.errors["mu"]
+
+
+
+def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
+
+    bins=np.linspace(0, 1, 11)
+
+    # Masks
+    signal_mask = label == 1
+    background_mask = label == 0
+
+    # Binned histograms
+    S_hist, _ = np.histogram(score[signal_mask], bins=bins, weights=weights[signal_mask])
+    B_hist, _ = np.histogram(score[background_mask], bins=bins, weights=weights[background_mask])
+    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+
+    # Binned negative log-likelihood function
+    def neg_ll(mu):
+        pred = mu * S_hist + B_hist
+        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
+        return -np.sum(N_obs * np.log(pred) - pred)
+
+    # Fit using Minuit
+    m = Minuit(neg_ll, mu=mu_init)
+    m.limits["mu"] = (0, None)
+    m.errordef = Minuit.LIKELIHOOD
+    
