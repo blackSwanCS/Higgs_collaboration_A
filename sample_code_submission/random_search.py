@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
     significance = evaluate_significance(params)
     print(f"Significance: {significance:.4f}")
+    print(params)
     
 # either run with "py /sample_code_submission/random_search.py --random" to use random parameters
 # or with "py /sample_code_submission/random_search.py --n_estimators 500 --learning_rate 0.05 --max_depth 4 --subsample 0.8 --colsample_bytree 0.8 --gamma 1"
