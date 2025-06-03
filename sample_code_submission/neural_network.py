@@ -1,54 +1,49 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
-import numpy as np
 
-# Dummy status class; adjust this to your actual status management
-class BDT_Status:
-    PREDICTED = "predicted"
 
 class NeuralNetwork:
     """
-    This Dummy class implements a neural network classifier.
-    Change the code in the fit method to implement a neural network classifier.
+    This Dummy class implements a neural network classifier
+    change the code in the fit method to implement a neural network classifier
+
+
     """
 
     def __init__(self, train_data):
         self.model = Sequential()
+
         n_dim = train_data.shape[1]
+
         self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
         self.model.add(Dense(10, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
-        self.model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+        self.model.compile(
+            loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
+        )
         self.scaler = StandardScaler()
-        # Initialize these internal variables as needed
-        self.__status = None
-        self.__test_labels = None
-        self.__test_weights = None
-        self.__predicted_data = None
 
     def fit(self, train_data, y_train, weights_train=None):
-        self.scaler.fit(train_data)
+
+        self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
-        self.model.fit(X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2)
-        # For example, after training you might set the status:
-        self.__status = BDT_Status.PREDICTED
+        self.model.fit(
+            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
+        )
 
     def predict(self, test_data):
         test_data = self.scaler.transform(test_data)
-        predictions = self.model.predict(test_data).flatten().ravel()
-        self.__predicted_data = predictions
-        return predictions
+        return self.model.predict(test_data).flatten().ravel()
 
-    def significance(self):
-        if self.__status != BDT_Status.PREDICTED:
-            raise ValueError(
-                "Model has not been fitted or predict yet. Please call fit() and predict() before significance()."
-            )
+    def significance(self, test_labels=None, test_weights=None):
+        if test_labels is not None:
+            self.__test_labels = test_labels
+        if test_weights is not None:
+            self.__test_weights = np.asarray(test_weights)
         if self.__test_labels is None:
-            raise ValueError(
-                "True labels for test data are not available. Please provide them when calling predict()."
-            )
+            raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
 
         def __amsasimov(s_in, b_in):
             s = np.copy(s_in)
@@ -79,9 +74,9 @@ class NeuralNetwork:
             significance = __amsasimov(s_cumul, b_cumul)
             return significance
 
-        vamsasimov = __significance_vscore(
+        vamsasimov_xgb = __significance_vscore(
             y_true=self.__test_labels,
             y_score=self.__predicted_data,
             sample_weight=self.__test_weights,
         )
-        return np.max(vamsasimov)
+        return np.max(vamsasimov_xgb)

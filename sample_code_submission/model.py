@@ -141,9 +141,9 @@ class Model:
         print(f"DEBUG: model_type = {repr(model_type)}")
 
         if model_type == "BDT":
-            from boosted_decision_tree import BoostedDecisionTree
+            import BDT.boosted_decision_tree
 
-            self.model = BoostedDecisionTree(train_data=self.training_set["data"])
+            self.model = BDT.boosted_decision_tree.get_best_model()
         elif model_type == "NN":
             from neural_network import NeuralNetwork
 
@@ -204,6 +204,9 @@ class Model:
         train_results = compute_mu(
             train_score, self.training_set["weights"], self.saved_info
         )
+
+        self.model.significance(self.training_set["labels"], self.training_set["weights"])
+        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
