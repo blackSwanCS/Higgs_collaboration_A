@@ -39,20 +39,26 @@ if __name__ == "__main__":
     # Define parameter grid (edit these lists as needed)
     n_estimators_list = np.linspace(100, 510, 10, dtype=int)
     max_depth_list = np.arange(2, 10, 1)
+    eta_list = np.linspace(0.01, 0.2, 10)
+    subsample_list = np.linspace(0.5, 1.0, 10)
 
     param_grid = list(product(
         n_estimators_list,
         max_depth_list,
+        eta_list,
+        subsample_list
     ))
 
     best_significance = -np.inf
     best_params = None
 
-    for n_estimators, max_depth in tqdm(param_grid):
+    for n_estimators, max_depth, eta, subsample in tqdm(param_grid):
         params = {
             "n_estimators": n_estimators,
             "max_depth": max_depth,
             "max_leaves": 0,
+            "eta": eta,
+            "subsample": subsample,
             "objective": "binary:logistic",
             "eval_metric": "logloss"
         }
