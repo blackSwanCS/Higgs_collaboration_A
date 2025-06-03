@@ -153,6 +153,17 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         best_idx = np.argmax(ams)
         best_threshold = threshold[best_idx]
 
+        #Uncomment to plot delta_mu
+        plt.plot(threshold, ams, label='ams')
+        plt.axvline(best_threshold, color='green', linestyle='--', label=f'Best threshold = {best_threshold:.3f}')
+        plt.xlabel("Threshold")
+        plt.ylabel("AMS")
+        plt.grid()
+        plt.title("AMS vs Threshold")
+        plt.legend()
+        plt.show()
+        
+
     # Calculate saved_info with this optimised cutoff
     score = score.flatten() > best_threshold
     score = score.astype(int)
