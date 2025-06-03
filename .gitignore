@@ -164,3 +164,5 @@ cython_debug/
 sample_result_submission/
 scoring_output/
 *.zip
+
+StartingKit_Black_Swan_HiggsML.ipynb
