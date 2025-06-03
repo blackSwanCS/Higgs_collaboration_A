@@ -23,31 +23,25 @@ def get_data():
     data.load_train_set()
     training_set = data.get_train_set()
     feature_keys = [k for k in training_set.keys() if k not in ("labels", "weights", "detailed_labels")]
-    train_data = np.column_stack([training_set[k] for k in feature_keys])
-    train_labels = training_set["labels"]
-    train_weights = training_set["weights"]
+    X = np.column_stack([training_set[k] for k in feature_keys])
+    y = training_set["labels"]
+    w = training_set["weights"]
 
-    data.load_test_set()
-    test_set = data.get_test_set()
-    feature_keys = [k for k in test_set.keys() if k not in ("labels", "weights", "detailed_labels")]
-    
-    expected_len = len(test_set["labels"])
-    filtered_keys = [k for k in feature_keys if len(test_set[k]) == expected_len]
-    if len(filtered_keys) != len(feature_keys):
-        print("Warning: Some features were dropped due to length mismatch:", set(feature_keys) - set(filtered_keys))
-    
-    test_data = np.column_stack([test_set[k] for k in feature_keys])
-    test_labels = test_set["labels"]
-    test_weights = test_set["weights"]
+    # Split into train/validation (e.g., 80/20 split)
+    n = len(y)
+    split = int(n * 0.8)
+    train_data, val_data = X[:split], X[split:]
+    train_labels, val_labels = y[:split], y[split:]
+    train_weights, val_weights = w[:split], w[split:]
 
-    return train_data, train_labels, train_weights, test_data, test_labels, test_weights
+    return train_data, train_labels, train_weights, val_data, val_labels, val_weights
 
 def evaluate_significance(params):
-    train_data, train_labels, train_weights, test_data, test_labels, test_weights = get_data()
-    model = BoostedDecisionTree(train_data, params)
+    train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
+    model = BoostedDecisionTree(params)
     model.fit(train_data, train_labels, train_weights)
-    predictions = model.predict(test_data)
-    significance = model.__significance__(test_labels, predictions, test_weights)
+    # Use the model's significance method, passing validation labels and weights
+    significance = model.significance(val_data, val_labels, weights=val_weights)
     return significance
 
 if __name__ == "__main__":
