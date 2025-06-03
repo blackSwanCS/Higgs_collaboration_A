@@ -10,9 +10,11 @@ THREADS_NUMBER = multiprocessing.cpu_count()
 
 
 def get_best_model():
-    model = BoostedDecisionTree()
-    model.load_model(BEST_BDT_MODEL_PATH)
-    return model
+    #model = BoostedDecisionTree()
+    #model.load_model(BEST_BDT_MODEL_PATH)
+    #return model
+    params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+    return BoostedDecisionTree(params)
 
 
 class BDT_Status(Enum):
@@ -29,8 +31,9 @@ class BoostedDecisionTree:
     def __init__(self, params=None):
         # Initialize the model and scaler
         if params is None:
-            params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
-        self.__model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
+            self.__model = XGBClassifier(n_jobs=THREADS_NUMBER)
+        else:
+            self.__model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
         self.__scaler = StandardScaler()        
         self.__status = BDT_Status.NOT_FITTED
     
@@ -44,7 +47,6 @@ class BoostedDecisionTree:
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
             warnings.warn("Model has already been fitted, skipping fiting", UserWarning)
-            return
 
         self.__scaler.fit_transform(train_data)
         self.__train_data = self.__scaler.transform(train_data)
