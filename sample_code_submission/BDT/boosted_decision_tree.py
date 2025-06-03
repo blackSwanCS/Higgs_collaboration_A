@@ -20,7 +20,7 @@ class BoostedDecisionTree:
         # Initialize the model and scaler
         self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count(), **params)
         self.__scaler = StandardScaler()        
-        self.__status == BDT_Status.NOT_FITTED
+        self.__status = BDT_Status.NOT_FITTED
 
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
@@ -32,7 +32,7 @@ class BoostedDecisionTree:
 
         self.__model.fit(self.__train_data, self.__labels, self.__weights)
 
-        self.__status == BDT_Status.FITTED
+        self.__status = BDT_Status.FITTED
     
     def predict(self, test_data):
         if self.__status == BDT_Status.NOT_FITTED:
