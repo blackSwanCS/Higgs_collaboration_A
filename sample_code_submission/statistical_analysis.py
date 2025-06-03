@@ -32,11 +32,13 @@ def compute_mu(score, weight, saved_info, method = "Likelihood"):
 
     """
 
-    score = score.flatten() > 0.5
+    score = score.flatten() > saved_info["best_threshold"]
     score = score.astype(int)
 
+    # Init the variables
     mu, del_mu_stat, del_mu_tot, del_mu_sys = (0,0,0,0)
 
+    # Counting method
     if method == "Counting" :
         mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
         del_mu_stat = (
@@ -45,9 +47,10 @@ def compute_mu(score, weight, saved_info, method = "Likelihood"):
         del_mu_sys = abs(0.0 * mu)
         del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
 
+    # Likelihood method
     elif method == "Likelihood" :
-        mu, del_mu_tot = likelihood_fit_mu(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], 1) 
-        plot_likelihood(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], mu)
+        mu, del_mu_tot = likelihood_fit_mu(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], 0.5) 
+        # plot_likelihood(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], mu)
 
     return {
         "mu_hat": mu,
@@ -57,7 +60,7 @@ def compute_mu(score, weight, saved_info, method = "Likelihood"):
     }
 
 
-def calculate_saved_info(model, holdout_set):
+def calculate_saved_info(model, holdout_set, method = "Mu"):
     """
     Calculate the saved_info dictionary for mu calculation
     Replace with actual calculations
@@ -68,9 +71,48 @@ def calculate_saved_info(model, holdout_set):
     from systematic_analysis import tes_fitter
     from systematic_analysis import jes_fitter
 
-    print("score shape before threshold", score.shape)
+    best_threshold = 0
 
-    score = score.flatten() > 0.5
+    # Chose an arbitrary cutoff
+    if method == "Arbitrary" :
+
+        best_threshold = 0.5
+        
+    # Chose the cutoff that minimises deltaMu
+    elif method == "Mu" :
+
+        # We calculate del_mu for many thresholds between 0 and 1
+        threshold = np.linspace(0.01,0.99,100)
+        del_mu = [0]*100
+        mu_list = [0]*100
+
+        #Iter through thresholds
+        for i, t in enumerate(threshold) :
+
+            score2 = score.flatten() > t
+            score2 = score2.astype(int)
+
+            label = holdout_set["labels"]
+
+            gamma = np.sum(holdout_set["weights"] * score2 * label)
+
+            beta = np.sum(holdout_set["weights"] * score2 * (1 - label))
+
+            mu = (np.sum(score2 * holdout_set["weights"]) - beta) / gamma
+            del_mu_stat = (
+                np.sqrt(beta + gamma) / gamma
+            )
+            del_mu_tot = np.sqrt(del_mu_stat**2)
+
+            mu_list[i] = mu
+            del_mu[i] = del_mu_tot
+
+        # Find the minimum of delta_mu
+        best_idx = np.argmin(del_mu)
+        best_threshold = threshold[best_idx]
+
+    # Calculate saved_info with this optimised cutoff
+    score = score.flatten() > best_threshold
     score = score.astype(int)
 
     label = holdout_set["labels"]
@@ -86,6 +128,7 @@ def calculate_saved_info(model, holdout_set):
         "gamma": gamma,
         "tes_fit": tes_fitter(model, holdout_set),
         "jes_fit": jes_fitter(model, holdout_set),
+        "best_threshold": best_threshold
     }
 
     print("saved_info", saved_info)
