@@ -55,7 +55,7 @@ if __name__ == "__main__":
             "eval_metric": "logloss"
         }
 #        print(f"Testing params: {params}")
-        params = {'n_estimators': np.int64(210), 'max_depth': np.int64(5), 'max_leaves': np.int64(0), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+        params = {'n_estimators': np.int64(215), 'max_depth': np.int64(5), 'max_leaves': np.int64(0), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
 
         significance = evaluate_significance(
             params,

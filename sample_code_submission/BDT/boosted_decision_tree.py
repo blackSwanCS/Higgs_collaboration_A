@@ -4,8 +4,9 @@ import numpy as np
 import multiprocessing
 from enum import Enum, auto
 import warnings
+import json
 
-BEST_BDT_MODEL_PATH = "best_bdt_model.json"
+BEST_BDT_MODEL_PATH = "best_bdt_model"
 THREADS_NUMBER = multiprocessing.cpu_count()
 
 def get_best_model():
@@ -28,6 +29,7 @@ class BoostedDecisionTree:
     """
 
     def __init__(self, params=None):
+        print("Initializing Boosted Decision Tree model...")
         # Initialize the model and scaler
         if params is None:
             self.__model = XGBClassifier(n_jobs=THREADS_NUMBER)
@@ -37,6 +39,7 @@ class BoostedDecisionTree:
         self.__status = BDT_Status.NOT_FITTED
 
     def fit(self, train_data, labels, weights=None):
+        print("Fitting Boosted Decision Tree model...")
         if self.__status != BDT_Status.NOT_FITTED:
             warnings.warn("Model has already been fitted, skipping fiting", UserWarning)
             return
@@ -104,10 +107,24 @@ class BoostedDecisionTree:
         """
         Load a pre-trained model from the specified path.
         """
-        self.__model.load_model(model_path)
+        self.__model.load_model(model_path + ".json")
+        
+        print(model_path + "_scaler.json")
+        with open(model_path + "_scaler.json", 'r') as f:
+            scaler_params = json.load(f)
+        self.__scaler = StandardScaler()
+        self.__scaler.mean_ = scaler_params['mean_']
+        self.__scaler.scale_ = scaler_params['scale_']
+
         self.__status = BDT_Status.FITTED
 
     def save(self):
         if self.__status == BDT_Status.NOT_FITTED:
             raise ValueError("Model has not been fitted yet. Please call fit() before save().")
-        self.__model.save_model(BEST_BDT_MODEL_PATH)
+        self.__model.save_model(BEST_BDT_MODEL_PATH + ".json")
+        scaler_params = {
+            'mean_': self.__scaler.mean_.tolist(),
+            'scale_': self.__scaler.scale_.tolist()
+        }
+        with open(BEST_BDT_MODEL_PATH + "_scaler.json", 'w') as f:
+            json.dump(scaler_params, f)
