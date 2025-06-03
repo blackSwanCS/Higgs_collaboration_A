@@ -23,7 +23,8 @@ def get_data():
 def evaluate_significance(params, train_data, train_labels, train_weights, val_data, val_labels, val_weights):
     model = BoostedDecisionTree(params)
     model.fit(train_data, train_labels, train_weights)
-    significance = model.significance(val_data, val_labels, weights=val_weights)
+    model.predict(val_data)
+    significance = model.significance()
     return significance
 
 if __name__ == "__main__":
