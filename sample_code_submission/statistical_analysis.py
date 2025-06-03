@@ -58,6 +58,13 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             saved_info["beta"],
             mu,
         )
+    elif method == "Likelihood+Systematics":
+        mu, del_mu_tot = likelihood_fit_mu_tes_jes(
+        saved_info["beta"] + saved_info["gamma"],
+        saved_info["tes_fit"],
+        saved_info["jes_fit"],
+        1.0, 1.0, 1.0
+    )
 
     return {
         "mu_hat": mu,
@@ -201,3 +208,30 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
+# Task 2: Systematic Uncertainty
+from HiggsML.systematics import tes_fit, jes_fit
+
+def likelihood_fit_mu_tes_jes(n_obs, tes_fit, jes_fit, mu_init=1.0, tes_init=1.0, jes_init=1.0):
+    """
+    Likelihood fit profiling over mu, tes, and jes.
+    tes_fit and jes_fit should be callables/functions that return beta and gamma for given tes, jes.
+    """
+    def neg_ll(mu, tes, jes):
+        # Get beta and gamma from the fit functions
+        beta = tes_fit(tes)
+        gamma = jes_fit(jes)
+        lam = mu * gamma + beta
+        lam = np.clip(lam, 1e-10, None)
+        return -(n_obs * np.log(lam) - lam)
+
+    m = Minuit(neg_ll, mu=mu_init, tes=tes_init, jes=jes_init)
+    m.limits["mu"] = (0, None)
+    m.limits["tes"] = (0.5, 1.5)  # Adjust as appropriate
+    m.limits["jes"] = (0.5, 1.5)  # Adjust as appropriate
+    m.errordef = Minuit.LIKELIHOOD
+
+    m.migrad()
+    m.hesse()
+
+    return m.values["mu"], m.errors["mu"]
