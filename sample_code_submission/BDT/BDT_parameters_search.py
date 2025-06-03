@@ -2,6 +2,7 @@ import numpy as np
 from HiggsML.datasets import download_dataset
 from boosted_decision_tree import BoostedDecisionTree
 from itertools import product
+from tqdm import tqdm
 
 def get_data():
     data = download_dataset("blackSwan_data")
@@ -32,35 +33,33 @@ if __name__ == "__main__":
     train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
 
     # Define parameter grid (edit these lists as needed)
-    n_estimators_list = np.arange(10,10000,102)
+    n_estimators_list = np.linspace(100, 510, 10, dtype=int)
     max_depth_list = np.arange(2, 10, 1)
-    max_leave_list = np.arange(0, 10, 1)
 
     param_grid = list(product(
         n_estimators_list,
         max_depth_list,
-        max_leave_list
     ))
 
     best_significance = -np.inf
     best_params = None
 
-    for n_estimators, max_depth, max_leave in param_grid:
+    for n_estimators, max_depth in tqdm(param_grid):
         params = {
             "n_estimators": n_estimators,
             "max_depth": max_depth,
-            "max_leaves": max_leave,
+            "max_leaves": 0,
             "objective": "binary:logistic",
             "use_label_encoder": False,
             "eval_metric": "logloss"
         }
-        print(f"Testing params: {params}")
+#        print(f"Testing params: {params}")
         significance = evaluate_significance(
             params,
             train_data, train_labels, train_weights,
             val_data, val_labels, val_weights
         )
-        print(f"Significance: {significance:.4f}")
+#        print(f"Significance: {significance:.4f}")
         if significance > best_significance:
             best_significance = significance
             best_params = params
