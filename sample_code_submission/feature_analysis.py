@@ -1,6 +1,4 @@
 #%pip install shap
-import shap
-import numpy as np
 from sklearn.metrics import accuracy_score
 
 def feature_corrilations(data):
@@ -12,7 +10,10 @@ def systematics_dependence(data):
 
 
 # shap for boosted decision tree
-def minimal_dependent_features(self, data, feature_names=None, top_k=None):
+def minimal_dependent_features(self, data):
+    import shap
+    import numpy as np
+
     # Scale the input like in training
     X_scaled = self.__scaler.transform(data)
 
@@ -23,15 +24,15 @@ def minimal_dependent_features(self, data, feature_names=None, top_k=None):
     # Mean absolute SHAP value per feature
     mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
 
-    # Handle feature names
-    if feature_names is None:
-        if hasattr(data, 'columns'):
-            feature_names = data.columns.tolist()
-        else:
-            feature_names = [f"f{i}" for i in range(X_scaled.shape[1])]
+    # Determine feature names
+    if hasattr(data, 'columns'):
+        feature_names = data.columns.tolist()
+    else:
+        feature_names = [f"f{i}" for i in range(X_scaled.shape[1])]
 
-    # Sort by SHAP value and extract only the names
+    # Sort features by importance
     importance = sorted(zip(feature_names, mean_abs_shap), key=lambda x: x[1], reverse=True)
     sorted_names = [name for name, _ in importance]
 
-    return sorted_names[:top_k] if top_k else sorted_names
+    return sorted_names
+
