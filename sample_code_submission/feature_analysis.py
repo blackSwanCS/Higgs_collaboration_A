@@ -30,6 +30,8 @@ def minimal_dependent_features(self, data, feature_names=None, top_k=None):
         else:
             feature_names = [f"f{i}" for i in range(X_scaled.shape[1])]
 
-    # Sort and return
+    # Sort by SHAP value and extract only the names
     importance = sorted(zip(feature_names, mean_abs_shap), key=lambda x: x[1], reverse=True)
-    return importance[:top_k] if top_k else importance
+    sorted_names = [name for name, _ in importance]
+
+    return sorted_names[:top_k] if top_k else sorted_names
