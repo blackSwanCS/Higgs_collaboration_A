@@ -3,10 +3,15 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import multiprocessing
 
+
 class BoostedDecisionTree:
     """
-    This class implements a boosted devision tree model
+    This Dummy class implements a decision tree classifier
+    change the code in the fit method to implement a decision tree classifier
+
+
     """
+
 
     def __init__(self):
         # Initialize the model and scaler
@@ -77,3 +82,4 @@ class BoostedDecisionTree:
         vamsasimov_xgb=__significance_vscore(y_true=y_test, y_score=y_pred_xgb, sample_weight=weights)
         significance_xgb = np.max(vamsasimov_xgb)
         return significance_xgb
+
