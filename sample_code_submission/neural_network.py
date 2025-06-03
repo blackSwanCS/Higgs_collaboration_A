@@ -1,7 +1,9 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
-
+import os
+import joblib
+from tensorflow.keras.models import load_model
 class NeuralNetwork:
     """
     This Dummy class implements a neural network classifier
@@ -15,8 +17,8 @@ class NeuralNetwork:
 
         n_dim = train_data.shape[1]
 
-        self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(10, activation="relu"))
+        self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
+        #self.model.add(Dense(10, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -63,3 +65,15 @@ class NeuralNetwork:
         vamsasimov_xgb=__significance_vscore(y_true=labels, y_score=y_pred_xgb, sample_weight=weights)
         significance_xgb = np.max(vamsasimov_xgb)
         return significance_xgb
+    
+    def save(self, path):
+        os.makedirs(path, exist_ok=True)
+        self.model.save(os.path.join(path, "keras_model.h5"))
+        joblib.dump(self.scaler, os.path.join(path, "scaler.pkl"))
+
+    @classmethod
+    def load(cls, path):
+        obj = cls.__new__(cls)
+        obj.model = load_model(os.path.join(path, "keras_model.h5"))
+        obj.scaler = joblib.load(os.path.join(path, "scaler.pkl"))
+        return obj
