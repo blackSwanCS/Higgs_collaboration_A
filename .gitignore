@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ghost
+.ghost
+.ghost*
+*.ghost
+*.ghost.*
+
 # C extensions
 *.so
 

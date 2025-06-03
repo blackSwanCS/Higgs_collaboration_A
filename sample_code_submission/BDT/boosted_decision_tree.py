@@ -16,7 +16,7 @@ class BoostedDecisionTree:
     This class implements a boosted decision tree model using XGBoost
     """
 
-    def __init__(self, params):
+    def __init__(self, params=None):
         # Initialize the model and scaler
         self.__model = XGBClassifier(**params, n_jobs=multiprocessing.cpu_count())
         self.__scaler = StandardScaler()        
@@ -25,6 +25,7 @@ class BoostedDecisionTree:
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
             raise ValueError("Model has already been fitted. Please create a new instance to fit again.")
+        
         self.__scaler.fit_transform(train_data)
         self.__train_data = self.__scaler.transform(train_data)
         self.__labels = labels
@@ -37,12 +38,10 @@ class BoostedDecisionTree:
     def predict(self, test_data, labels=None, weights=None):
         if self.__status == BDT_Status.NOT_FITTED:
             raise ValueError("Model has not been fitted yet. Please call fit() before predict().")
+        
         self.__test_data = self.__scaler.transform(test_data)
         self.__predicted_data = self.__model.predict_proba(self.__test_data)[:, 1]
-        if labels is not None:
-            self.__test_labels = labels
-        else:
-            self.__test_labels = None
+        self.__test_labels = labels
         if weights is not None:
             self.__test_weights = np.asarray(weights)
         else:
@@ -55,6 +54,7 @@ class BoostedDecisionTree:
             raise ValueError("Model has not been fitted or predict yet. Please call fit() and predict() before significance().")
         if self.__test_labels is None:
             raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
+        
         def __amsasimov(s_in,b_in):
             s=np.copy(s_in)
             b=np.copy(b_in)
@@ -83,6 +83,5 @@ class BoostedDecisionTree:
             y_score=self.__predicted_data,
             sample_weight=self.__test_weights
         )
-        significance_xgb = np.max(vamsasimov_xgb)
-        return significance_xgb
+        return np.max(vamsasimov_xgb)
 
