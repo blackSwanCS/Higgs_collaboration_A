@@ -141,7 +141,7 @@ class Model:
         print(f"DEBUG: model_type = {repr(model_type)}")
 
         if model_type == "BDT":
-            from boosted_decision_tree import BoostedDecisionTree
+            from BDT.boosted_decision_tree import BoostedDecisionTree
             self.model = BoostedDecisionTree(self.training_set)
         elif model_type == "NN":
             from neural_network import NeuralNetwork

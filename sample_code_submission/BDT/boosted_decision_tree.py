@@ -18,6 +18,15 @@ class BoostedDecisionTree:
 
     def __init__(self, params=None):
         # Initialize the model and scaler
+        if params is None:
+            params = {
+                "n_estimators": 210,
+                "max_depth": 5,
+                "max_leaves": 0,
+                "objective": "binary:logistic",
+                "use_label_encoder": False,
+                "eval_metric": "logloss"
+            }
         self.__model = XGBClassifier(**params, n_jobs=multiprocessing.cpu_count())
         self.__scaler = StandardScaler()        
         self.__status = BDT_Status.NOT_FITTED
