@@ -1,5 +1,6 @@
 from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import roc_auc_score
 import numpy as np
 import multiprocessing
 from enum import Enum, auto
@@ -14,8 +15,8 @@ def get_best_model():
     model = BoostedDecisionTree()
     model.load_model(BEST_BDT_MODEL_PATH)
     return model
-    # params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
-    # return BoostedDecisionTree(params)
+    #params = {'n_estimators': np.int64(236), 'max_depth': np.int64(9), 'max_leaves': np.int64(0), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+    #return BoostedDecisionTree(params)
 
 
 class BDT_Status(Enum):
@@ -70,7 +71,8 @@ class BoostedDecisionTree:
         self.__status = BDT_Status.PREDICTED
         return self.__predicted_data
 
-    def significance(self):
+    def significance(self, test_labels):
+        self.__test_labels = test_labels
         if self.__status != BDT_Status.PREDICTED:
             raise ValueError(
                 "Model has not been fitted or predict yet. Please call fit() and predict() before significance()."
@@ -104,6 +106,7 @@ class BoostedDecisionTree:
             b_hist, bin_edges = np.histogram(
                 y_score[y_true == 0], bins=bins, weights=sample_weight[y_true == 0]
             )
+            print(s_hist, b_hist)
             s_cumul = np.cumsum(s_hist[::-1])[::-1]
             b_cumul = np.cumsum(b_hist[::-1])[::-1]
             significance = __amsasimov(s_cumul, b_cumul)
@@ -115,6 +118,13 @@ class BoostedDecisionTree:
             sample_weight=self.__test_weights,
         )
         return np.max(vamsasimov_xgb)
+
+    def auc(self):
+        return roc_auc_score(
+            y_true=self.__test_labels,
+            y_score=self.__predicted_data,
+            sample_weight=self.__test_weights,
+        )
 
     def load_model(self, model_path):
         """
