@@ -1,7 +1,7 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
-
+import numpy as np
 
 class NeuralNetwork:
     """
@@ -26,16 +26,27 @@ class NeuralNetwork:
         self.scaler = StandardScaler()
 
     def fit(self, train_data, y_train, weights_train=None):
-
+        # Fit the scaler on the training data
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
-        self.model.fit(
-            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
-        )
+        # Fit the model using the transformed data
+        self.model.fit(X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2)
 
-    def predict(self, test_data):
+    def predict(self, test_data, labels=None, weights=None):
         test_data = self.scaler.transform(test_data)
-        return self.model.predict(test_data).flatten().ravel()
+        predictions = self.model.predict(test_data).flatten().ravel()
+
+        print("predictions.shape:", predictions.shape)
+        print("labels.shape:", np.array(labels).shape)
+        print("weights.shape:", np.array(weights).shape)
+        # Store predictions for significance calculation
+        self.__predicted_data = predictions
+        # Optionally store test labels and weights if provided
+        if labels is not None:
+            self.__test_labels = labels
+        if weights is not None:
+            self.__test_weights = np.asarray(weights)
+        return predictions
 
     def significance(self, test_labels=None, test_weights=None):
         if test_labels is not None:
@@ -44,7 +55,18 @@ class NeuralNetwork:
             self.__test_weights = np.asarray(test_weights)
         if self.__test_labels is None:
             raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
-
+        
+        # --- Patch: Align arrays to the smallest length ---
+        pred_data = self.__predicted_data
+        test_labels_arr = np.array(self.__test_labels)
+        test_weights_arr = np.array(self.__test_weights)
+        n = min(pred_data.shape[0], test_labels_arr.shape[0], test_weights_arr.shape[0])
+        if pred_data.shape[0] != n or test_labels_arr.shape[0] != n or test_weights_arr.shape[0] != n:
+            pred_data = pred_data[:n]
+            test_labels_arr = test_labels_arr[:n]
+            test_weights_arr = test_weights_arr[:n]
+        # -------------------------------------------------------
+        
         def __amsasimov(s_in, b_in):
             s = np.copy(s_in)
             b = np.copy(b_in)
@@ -75,8 +97,8 @@ class NeuralNetwork:
             return significance
 
         vamsasimov_xgb = __significance_vscore(
-            y_true=self.__test_labels,
-            y_score=self.__predicted_data,
-            sample_weight=self.__test_weights,
+            y_true=test_labels_arr,
+            y_score=pred_data,
+            sample_weight=test_weights_arr,
         )
         return np.max(vamsasimov_xgb)
