@@ -47,6 +47,7 @@ class BoostedDecisionTree:
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
             warnings.warn("Model has already been fitted, skipping fiting", UserWarning)
+            return
 
         self.__scaler.fit_transform(train_data)
         self.__train_data = self.__scaler.transform(train_data)
