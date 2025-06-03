@@ -118,6 +118,19 @@ def calculate_saved_info(model, holdout_set, method = "Mu"):
         best_idx = np.argmin(del_mu)
         best_threshold = threshold[best_idx]
 
+        """" #Uncomment to plot delta_mu
+        plt.plot(threshold, del_mu, label='del_mu')
+        plt.plot(threshold, mu_list, label='mu')
+        plt.axvline(best_threshold, color='green', linestyle='--', label=f'Best threshold = {best_threshold:.3f}')
+        plt.xlabel("Threshold")
+        plt.ylabel("Del_MU")
+        plt.grid()
+        plt.title("Del_mu and Mu vs Threshold")
+        plt.legend()
+        plt.show()
+        """"
+
+
     # Calculate saved_info with this optimised cutoff
     score = score.flatten() > best_threshold
     score = score.astype(int)
