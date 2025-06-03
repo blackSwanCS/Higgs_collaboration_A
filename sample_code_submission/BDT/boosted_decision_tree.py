@@ -3,6 +3,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import multiprocessing
 from enum import Enum, auto
+import warnings
 
 BEST_BDT_MODEL_PATH = "best_bdt_model.json"
 THREADS_NUMBER = multiprocessing.cpu_count()
@@ -43,8 +44,9 @@ class BoostedDecisionTree:
 
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
-            raise ValueError("Model has already been fitted. Please create a new instance to fit again.")
-        
+            warnings.warn("Model has already been fitted, skipping fiting", UserWarning)
+            return
+
         self.__scaler.fit_transform(train_data)
         self.__train_data = self.__scaler.transform(train_data)
         self.__labels = labels
