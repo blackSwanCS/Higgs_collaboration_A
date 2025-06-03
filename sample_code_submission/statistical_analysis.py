@@ -24,7 +24,7 @@ Task 2 : Systematic Uncertainty
 """
 
 
-def compute_mu(score, weight, saved_info, method = "Likelihood"):
+def compute_mu(score, weight, saved_info, method="Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -35,9 +35,9 @@ def compute_mu(score, weight, saved_info, method = "Likelihood"):
     score = score.flatten() > 0.5
     score = score.astype(int)
 
-    mu, del_mu_stat, del_mu_tot, del_mu_sys = (0,0,0,0)
+    mu, del_mu_stat, del_mu_tot, del_mu_sys = (0, 0, 0, 0)
 
-    if method == "Counting" :
+    if method == "Counting":
         mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
         del_mu_stat = (
             np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
@@ -45,9 +45,19 @@ def compute_mu(score, weight, saved_info, method = "Likelihood"):
         del_mu_sys = abs(0.0 * mu)
         del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
 
-    elif method == "Likelihood" :
-        mu, del_mu_tot = likelihood_fit_mu(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], 1) 
-        plot_likelihood(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], mu)
+    elif method == "Likelihood":
+        mu, del_mu_tot = likelihood_fit_mu(
+            saved_info["beta"] + saved_info["gamma"],
+            saved_info["gamma"],
+            saved_info["beta"],
+            0.1,
+        )
+        plot_likelihood(
+            saved_info["beta"] + saved_info["gamma"],
+            saved_info["gamma"],
+            saved_info["beta"],
+            mu,
+        )
 
     return {
         "mu_hat": mu,
@@ -93,18 +103,16 @@ def calculate_saved_info(model, holdout_set):
     return saved_info
 
 
-
-#Calculation of log likelihood
 from iminuit import Minuit
 import matplotlib.pyplot as plt
 
 
-def neg_ll(mu,n_obs,S,B):
+def neg_ll(mu, n_obs, S, B):
 
-    n_pred = mu*S + B
-    n_pred = np.clip(n_pred, 1e-10, None) #éviter d'avoir log(0)
-    neg_ll = - np.sum(n_obs*np.log(n_pred) - n_pred)
-    
+    n_pred = mu * S + B
+    n_pred = np.clip(n_pred, 1e-10, None)  # éviter d'avoir log(0)
+    neg_ll = -np.sum(n_obs * np.log(n_pred) - n_pred)
+
     return neg_ll
 
 
@@ -116,10 +124,10 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
-    m.errordef = Minuit.LIKELIHOOD  # critical: tells Minuit it's a log-likelihood
+    m.errordef = Minuit.LIKELIHOOD
 
-    m.migrad()  # find minimum
-    m.hesse()   # compute second derivatives (errors)
+    m.migrad()  # calcule le mini
+    m.hesse()  # calcule de la hessienne
 
     return m.values["mu"], m.errors["mu"]
 
@@ -130,19 +138,22 @@ def plot_likelihood(n_obs, S, B, mu_hat):
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam)
 
-    # Generate a range of μ values around the best-fit
     mu_vals = np.linspace(0, 3, 200)
     nll_vals = [neg_ll(mu) for mu in mu_vals]
 
-    # Find the minimum value (to plot ΔNLL)
+    # trouve le minimum (pour plot ΔNLL)
     nll_min = min(nll_vals)
     delta_nll = [val - nll_min for val in nll_vals]
 
-    # Plot
     plt.figure(figsize=(8, 5))
-    plt.plot(mu_vals, delta_nll, label=r"$\Delta$NLL", color='blue')
-    plt.axhline(0.5, color='gray', linestyle='--', label=r"1$\sigma$ contour ($\Delta$NLL = 0.5)")
-    plt.axvline(mu_hat, color='red', linestyle='--', label=fr"$\hat\mu = {mu_hat:.3f}$")
+    plt.plot(mu_vals, delta_nll, label=r"$\Delta$NLL", color="blue")
+    plt.axhline(
+        0.5,
+        color="gray",
+        linestyle="--",
+        label=r"1$\sigma$ contour ($\Delta$NLL = 0.5)",
+    )
+    plt.axvline(mu_hat, color="red", linestyle="--", label=rf"$\hat\mu = {mu_hat:.3f}$")
     plt.xlabel(r"$\mu$")
     plt.ylabel(r"$\Delta$ Negative Log-Likelihood")
     plt.title("Profile Likelihood Curve for $\mu$")
