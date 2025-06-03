@@ -8,26 +8,12 @@ import warnings
 BEST_BDT_MODEL_PATH = "best_bdt_model.json"
 THREADS_NUMBER = multiprocessing.cpu_count()
 
-
 def get_best_model():
-    #model = BoostedDecisionTree()
-    #model.load_model(BEST_BDT_MODEL_PATH)
-    #return model
-    params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
-    return BoostedDecisionTree(params)
-
-
-
-BEST_BDT_MODEL_PATH = "best_bdt_model.json"
-THREADS_NUMBER = multiprocessing.cpu_count()
-
-
-def get_best_model():
-    #model = BoostedDecisionTree()
-    #model.load_model(BEST_BDT_MODEL_PATH)
-    #return model
-    params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
-    return BoostedDecisionTree(params)
+    model = BoostedDecisionTree()
+    model.load_model(BEST_BDT_MODEL_PATH)
+    return model
+    #params = {'n_estimators': np.int64(112), 'max_depth': np.int64(8), 'max_leaves': np.int64(1), 'objective': 'binary:logistic', 'use_label_encoder': False, 'eval_metric': 'logloss'}
+    #return BoostedDecisionTree(params)
 
 
 class BDT_Status(Enum):
