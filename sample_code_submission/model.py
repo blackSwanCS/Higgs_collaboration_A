@@ -189,11 +189,9 @@ class Model:
 
         balanced_set["weights"] = weights_train
 
-        """
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
-        """
 
         self.holdout_set = self.systematics(self.holdout_set)
 
@@ -206,6 +204,9 @@ class Model:
         train_results = compute_mu(
             train_score, self.training_set["weights"], self.saved_info
         )
+
+        #self.model.significance(self.training_set["labels"], self.training_set["weights"])
+        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(

@@ -71,8 +71,11 @@ class BoostedDecisionTree:
         self.__status = BDT_Status.PREDICTED
         return self.__predicted_data
 
-    def significance(self, test_labels):
-        self.__test_labels = test_labels
+    def significance(self, test_labels=None, test_weights=None):
+        if test_labels is not None:
+            self.__test_labels = test_labels
+        if test_weights is not None:
+            self.__test_weights = np.asarray(test_weights)
         if self.__status != BDT_Status.PREDICTED:
             raise ValueError(
                 "Model has not been fitted or predict yet. Please call fit() and predict() before significance()."
@@ -119,7 +122,11 @@ class BoostedDecisionTree:
         )
         return np.max(vamsasimov_xgb)
 
-    def auc(self):
+    def auc(self, test_labels=None, test_weights=None):
+        if test_labels is not None:
+            self.__test_labels = test_labels
+        if test_weights is not None:
+            self.__test_weights = np.asarray(test_weights)
         return roc_auc_score(
             y_true=self.__test_labels,
             y_score=self.__predicted_data,
