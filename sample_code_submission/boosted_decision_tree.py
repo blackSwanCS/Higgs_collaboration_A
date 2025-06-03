@@ -44,7 +44,9 @@ class BoostedDecisionTree:
             s=np.where( (b_in == 0) , 0., s_in)
             b=np.where( (b_in == 0) , 1., b)
             ams = np.sqrt(2*((s+b)*np.log(1+s/b)-s))
-            ams=np.where( (s < 0)  | (b <= 0), np.nan, ams)
+
+            ams=np.where( (s < 0)  | (b < 0), np.nan, ams)
+
             if np.isscalar(s_in):
                 return float(ams)
             else:

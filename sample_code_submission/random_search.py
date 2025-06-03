@@ -12,6 +12,7 @@ def get_data():
     y = training_set["labels"]
     w = training_set["weights"]
 
+
     n = len(y)
     split = int(n * 0.8)
     train_data, val_data = X[:split], X[split:]
@@ -23,6 +24,7 @@ def get_data():
 def evaluate_significance(params, train_data, train_labels, train_weights, val_data, val_labels, val_weights):
     model = BoostedDecisionTree(params)
     model.fit(train_data, train_labels, train_weights)
+
     significance = model.significance(val_data, val_labels, weights=val_weights)
     return significance
 
@@ -67,3 +69,4 @@ if __name__ == "__main__":
     print("\nBest parameters:")
     print(best_params)
     print(f"Best significance: {best_significance:.4f}")
+
