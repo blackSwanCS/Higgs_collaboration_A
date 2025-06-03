@@ -1,4 +1,7 @@
 import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from sklearn.preprocessing import StandardScaler
 
 from HiggsML.ingestion import Ingestion
 from HiggsML.datasets import download_dataset
@@ -71,13 +74,6 @@ class NeuralNetwork:
         vamsasimov_xgb=__significance_vscore(y_true=labels, y_score=y_pred_xgb, sample_weight=weights)
         significance_xgb = np.max(vamsasimov_xgb)
         return significance_xgb
-
-
-
-
-
-
-
 
 
 
