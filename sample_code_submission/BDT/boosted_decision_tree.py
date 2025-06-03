@@ -16,9 +16,9 @@ class BoostedDecisionTree:
     This class implements a boosted decision tree model using XGBoost
     """
 
-    def __init__(self):
+    def __init__(self, params):
         # Initialize the model and scaler
-        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count())
+        self.__model = XGBClassifier(n_jobs=multiprocessing.cpu_count(), **params)
         self.__scaler = StandardScaler()        
         self.__status == BDT_Status.NOT_FITTED
 
