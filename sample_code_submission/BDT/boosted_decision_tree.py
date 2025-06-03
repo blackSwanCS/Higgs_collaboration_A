@@ -4,6 +4,15 @@ import numpy as np
 import multiprocessing
 from enum import Enum, auto
 
+BEST_BDT_MODEL_PATH = "best_bdt_model.json"
+THREADS_NUMBER = multiprocessing.cpu_count()
+
+
+def get_best_model():
+    model = BoostedDecisionTree()
+    model.load_model(BEST_BDT_MODEL_PATH)
+    return model
+
 
 class BDT_Status(Enum):
     NOT_FITTED = auto()
@@ -18,9 +27,16 @@ class BoostedDecisionTree:
 
     def __init__(self, params=None):
         # Initialize the model and scaler
-        self.__model = XGBClassifier(**params, n_jobs=multiprocessing.cpu_count())
+        self.__model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
         self.__scaler = StandardScaler()        
         self.__status = BDT_Status.NOT_FITTED
+    
+    def load_model(self, model_path):
+        """
+        Load a pre-trained model from the specified path.
+        """
+        self.__model.load_model(model_path)
+        self.__status = BDT_Status.FITTED
 
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
@@ -85,3 +101,7 @@ class BoostedDecisionTree:
         )
         return np.max(vamsasimov_xgb)
 
+    def save(self):
+        if self.__status == BDT_Status.NOT_FITTED:
+            raise ValueError("Model has not been fitted yet. Please call fit() before save().")
+        self.__model.save_model(BEST_BDT_MODEL_PATH)
