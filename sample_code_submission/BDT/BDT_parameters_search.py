@@ -1,3 +1,4 @@
+import csv
 import numpy as np
 from HiggsML.datasets import download_dataset
 from boosted_decision_tree import BoostedDecisionTree
@@ -51,7 +52,8 @@ if __name__ == "__main__":
 
     best_significance = -np.inf
     best_params = None
-
+    excel = np.zeros((len(n_estimators_list)*len(max_depth_list),6))
+    i=0
     for n_estimators, max_depth, eta, subsample in tqdm(param_grid):
         params = {
             "n_estimators": n_estimators,
@@ -68,6 +70,9 @@ if __name__ == "__main__":
             train_data, train_labels, train_weights,
             val_data, val_labels, val_weights
         )
+        t=time.time()
+        excel[i]=[n_estimators,max_depth,eta,subsample,t,significance]
+        i+=1
 #        print(f"Significance: {significance:.4f}")
         if significance > best_significance:
             best_significance = significance
@@ -76,3 +81,7 @@ if __name__ == "__main__":
     print("\nBest parameters:")
     print(best_params)
     print(f"Best significance: {best_significance:.4f}")
+    csv_file_path = 'C:/Users/Bibi/Documents/EI/donnees_excel.csv'
+    with open (csv_file_path,mode='w',newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(excel)
