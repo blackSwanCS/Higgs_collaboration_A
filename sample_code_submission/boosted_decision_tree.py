@@ -7,9 +7,11 @@ class BoostedDecisionTree:
     This class implements a boosted devision tree model
     """
 
-    def __init__(self, train_data):
+    def __init__(self, train_data, params):
         # Initialize the model and scaler
-        self.model = XGBClassifier()
+        self.train_data = train_data
+        self.params = params
+        self.model = XGBClassifier(**params)
         self.scaler = StandardScaler()
 
     def fit(self, train_data, labels, weights=None):
@@ -31,7 +33,7 @@ class BoostedDecisionTree:
         # Predict the probabilities for the positive class
         return self.model.predict_proba(test_data)[:, 1]
 
-    def __significance__(self,y_test,y_pred_xgb,weights_test):
+    def __significance__(self, y_test, y_pred_xgb, weights_test):
         def amsasimov(s_in,b_in): # asimov significance arXiv:1007.1727 eq. 97 (reduces to s/sqrt(b) if s<<b)
             # if b==0 ams is undefined, but return 0 without warning for convenience (hack)
             s=np.copy(s_in)
@@ -76,4 +78,4 @@ class BoostedDecisionTree:
         return(significance_xgb)
 
     #We need to show the AUC and significance and then modify the self.model in order to maximize the significance 
-     # Modifier les indices pour changer le nombre de données d'entrainement l62 de model.py
+    # Modifier les indices pour changer le nombre de données d'entrainement l62 de model.py
