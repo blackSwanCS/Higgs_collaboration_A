@@ -24,7 +24,7 @@ Task 2 : Systematic Uncertainty
 """
 
 
-def compute_mu(score, weight, saved_info):
+def compute_mu(score, weight, saved_info, method = "Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -35,12 +35,18 @@ def compute_mu(score, weight, saved_info):
     score = score.flatten() > 0.5
     score = score.astype(int)
 
-    mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
-    del_mu_stat = (
-        np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
-    )
-    del_mu_sys = abs(0.0 * mu)
-    del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
+    mu, del_mu_stat, del_mu_tot, del_mu_sys = (0,0,0,0)
+
+    if method == "Counting" :
+        mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
+        del_mu_stat = (
+            np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
+        )
+        del_mu_sys = abs(0.0 * mu)
+        del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
+
+    elif method == "Likelihood" :
+        mu, del_mu_tot = likelihood_fit_mu(saved_info["beta"] + saved_info["gamma"], saved_info["gamma"], saved_info["beta"], 1) 
 
     return {
         "mu_hat": mu,
@@ -84,3 +90,30 @@ def calculate_saved_info(model, holdout_set):
     print("saved_info", saved_info)
 
     return saved_info
+
+
+
+
+
+#Calculation of log likelihood
+from iminuit import Minuit
+
+
+def neg_ll(mu,n_obs,S,B):
+
+    n_pred = mu*S + B
+    n_pred = np.clip(n_pred, 1e-10, None) #éviter d'avoir log(0)
+    neg_ll = - np.sum(n_obs*np.log(n_pred) - n_pred)
+    
+    return neg_ll
+
+
+def likelihood_fit_mu(n_obs, S, B, mu_init) :
+    #fit mu en profilant la vraisemblance et retourne mu et del_mu
+
+    m = Minuit(neg_ll, mu=mu_init, n_obs = n_obs, S=S, B=B)
+    
+    m.limits["mu"] = (0, None) # pour avoir mu >=0
+    m.migrad()  #migrad cherche les paramètres qui minimisent la fonction neg_ll
+
+    return (m.values['mu'], m.errors['mu'])
