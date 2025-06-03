@@ -42,11 +42,9 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
         del_mu_stat = (
             np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
         )
-        del_mu_sys = abs(0.0 * mu)
-        del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
 
     elif method == "Likelihood":
-        mu, del_mu_tot = likelihood_fit_mu(
+        mu, del_mu_stat = likelihood_fit_mu(
             saved_info["beta"] + saved_info["gamma"],
             saved_info["gamma"],
             saved_info["beta"],
@@ -59,13 +57,10 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             mu,
         )
 
-    elif method == "Binned_Likelihood" :
-        mu, del_mu_tot = likelihood_fit_mu_binned(
-            score,
-            saved_info["label"],
-            weight
-        )
-
+    elif method == "Binned_Likelihood":
+        mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
+    del_mu_sys = abs(0.0 * mu)
+    del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
     return {
         "mu_hat": mu,
         "del_mu_stat": del_mu_stat,
@@ -189,7 +184,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         "tes_fit": tes_fitter(model, holdout_set),
         "jes_fit": jes_fitter(model, holdout_set),
         "best_threshold": best_threshold,
-        "label" : label
+        "label": label,
     }
 
     print("saved_info", saved_info)
@@ -257,18 +252,21 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.show()
 
 
-
 def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-    bins=np.linspace(0, 1, 11)
+    bins = np.linspace(0, 1, 11)
 
     # Masks
     signal_mask = label == 1
     background_mask = label == 0
 
     # Binned histograms
-    S_hist, _ = np.histogram(score[signal_mask], bins=bins, weights=weights[signal_mask])
-    B_hist, _ = np.histogram(score[background_mask], bins=bins, weights=weights[background_mask])
+    S_hist, _ = np.histogram(
+        score[signal_mask], bins=bins, weights=weights[signal_mask]
+    )
+    B_hist, _ = np.histogram(
+        score[background_mask], bins=bins, weights=weights[background_mask]
+    )
     N_obs, _ = np.histogram(score, bins=bins, weights=weights)
 
     # Binned negative log-likelihood function
