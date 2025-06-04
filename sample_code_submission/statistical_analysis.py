@@ -39,11 +39,7 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
 
     # Compute mu with counting method
     if method == "Counting":
-        mu, del_mu_stat = counting_mu(
-            score,
-            weight,
-            saved_info
-        )
+        mu, del_mu_stat = counting_mu(score, weight, saved_info)
 
     # Compute mu with Likelihood method
     elif method == "Likelihood":
@@ -63,20 +59,17 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
     # Compute mu with likelihood and tes and jes
     elif method == "Likelihood+Systematics":
         mu, del_mu_stat = likelihood_fit_mu_tes_jes(
-        saved_info["beta"] + saved_info["gamma"],
-        saved_info["tes_fit"],
-        saved_info["jes_fit"],
-        1.0, 1.0, 1.0
-    )
+            saved_info["beta"] + saved_info["gamma"],
+            saved_info["tes_fit"],
+            saved_info["jes_fit"],
+            1.0,
+            1.0,
+            1.0,
+        )
 
     # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
-        mu, del_mu_stat = likelihood_fit_mu_binned(
-            score,
-            label,
-            weight
-    )
-        print("BINNED LIKELIHOOD : ", mu, del_mu_stat)
+        mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
@@ -194,8 +187,6 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
 
     label = holdout_set["labels"]
 
-    print("score shape after threshold", score.shape)
-
     gamma = np.sum(holdout_set["weights"] * score * label)
 
     beta = np.sum(holdout_set["weights"] * score * (1 - label))
@@ -217,13 +208,12 @@ from iminuit import Minuit
 import matplotlib.pyplot as plt
 
 
-def counting_mu(score, weight, saved_info) :
+def counting_mu(score, weight, saved_info):
     mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
     del_mu_stat = (
         np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
     )
     return mu, del_mu_stat
-
 
 
 def neg_ll(mu, n_obs, S, B):
@@ -250,7 +240,10 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
 
     return m.values["mu"], m.errors["mu"]
 
+
 from scipy.interpolate import interp1d
+
+
 def plot_likelihood(n_obs, S, B, mu_hat):
     def neg_ll(mu):
         lam = mu * S + B
@@ -269,8 +262,18 @@ def plot_likelihood(n_obs, S, B, mu_hat):
 
     try:
         # Interpolate to find where ΔNLL = 0.5
-        left_interp = interp1d(delta_nll[left_mask], mu_vals[left_mask], bounds_error=False, fill_value="extrapolate")
-        right_interp = interp1d(delta_nll[right_mask], mu_vals[right_mask], bounds_error=False, fill_value="extrapolate")
+        left_interp = interp1d(
+            delta_nll[left_mask],
+            mu_vals[left_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+        right_interp = interp1d(
+            delta_nll[right_mask],
+            mu_vals[right_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
 
         mu_lower = float(left_interp(0.5))
         mu_upper = float(right_interp(0.5))
@@ -285,8 +288,18 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.figure(figsize=(8, 5))
     plt.plot(mu_vals, delta_nll, label=r"$\Delta$NLL", color="blue")
     plt.axvline(mu_hat, color="red", linestyle="--", label=rf"$\hat\mu = {mu_hat:.3f}$")
-    plt.axvline(mu_lower, color="green", linestyle="--", label=rf"$\mu_{{-1\sigma}} = {mu_lower:.3f}$")
-    plt.axvline(mu_upper, color="green", linestyle="--", label=rf"$\mu_{{+1\sigma}} = {mu_upper:.3f}$")
+    plt.axvline(
+        mu_lower,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{-1\sigma}} = {mu_lower:.3f}$",
+    )
+    plt.axvline(
+        mu_upper,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{+1\sigma}} = {mu_upper:.3f}$",
+    )
     plt.xlabel(r"$\mu$")
     plt.ylabel(r"$\Delta$ Negative Log-Likelihood")
     plt.title(rf"Profile Likelihood: $\delta\mu$ = {delta_mu:.3f}")
@@ -323,20 +336,17 @@ def plot_likelihood(n_obs, S, B, mu_hat):
 #     return m.values["mu"], m.errors["mu"]
 
 
-
-
 def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-    bins = np.linspace(0, 1, 11)
-
+    bins = np.linspace(0, 1, 101)
     # Masks
     signal_mask = label == 1
     background_mask = label == 0
-
     # Binned histograms
     S_hist, _ = np.histogram(
         score[signal_mask], bins=bins, weights=weights[signal_mask]
     )
+
     B_hist, _ = np.histogram(
         score[background_mask], bins=bins, weights=weights[background_mask]
     )
@@ -356,4 +366,30 @@ def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
     m.migrad()
     m.hesse()
 
+    mu_fit = m.values["mu"]
+    mu_err = m.errors["mu"]
+
+    plt.figure(figsize=(8, 5))
+    width = bins[1] - bins[0]
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+
+    plt.bar(
+        bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
+    )
+    plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
+    plt.step(
+        bin_centers,
+        mu_fit * S_hist + B_hist,
+        where="mid",
+        label=f"Signal + Background (mu={mu_fit:.2f})",
+        color="green",
+    )
+
+    plt.xlabel("Score")
+    plt.ylabel("Weighted Events")
+    plt.legend()
+    plt.grid(True)
+    plt.title("Binned Histogram: Observed vs Model Prediction")
+    plt.tight_layout()
+    plt.show()
     return m.values["mu"], m.errors["mu"]
