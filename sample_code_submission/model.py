@@ -292,7 +292,7 @@ class Model:
 
         predictions = self.model.predict(test_data)
 
-        result_mu_cal = compute_mu(predictions, test_weights, self.saved_info)
+        result_mu_cal = compute_mu(predictions, test_weights,test_set["labels"], self.saved_info)
 
         print("Test Results: ", result_mu_cal)
 
