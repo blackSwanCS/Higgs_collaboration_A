@@ -31,7 +31,7 @@ Task 2 : Systematic Uncertainty
 #################################################
 #               MAIN FUNCTIONS                  #
 #################################################
-
+BINS = np.linspace(0, 1, 101)
 
 def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     """
@@ -53,22 +53,22 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     # Compute mu with Likelihood method
     elif method == "Likelihood":
         mu, del_mu_stat = likelihood_fit_mu(
-            saved_info["beta"] + saved_info["gamma"],
+            np.sum(score_flat * weight),
             saved_info["gamma"],
             saved_info["beta"],
-            0.1,
+            1,
         )
-        plot_likelihood(
-            saved_info["beta"] + saved_info["gamma"],
-            saved_info["gamma"],
-            saved_info["beta"],
-            mu,
-        )
+        # plot_likelihood(
+        #     np.sum(score_flat * weight),
+        #     saved_info["gamma"],
+        #     saved_info["beta"],
+        #     mu,
+        # )
 
     # Compute mu with likelihood and tes and jes
     elif method == "Likelihood+Systematics":
         mu, del_mu_stat = likelihood_fit_mu_tes_jes(
-            saved_info["beta"] + saved_info["gamma"],
+            np.sum(score_flat * weight),
             saved_info["tes_fit"],
             saved_info["jes_fit"],
             1.0,
@@ -78,16 +78,36 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
 
     # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
-        mu, del_mu_stat = likelihood_fit_mu_binned(score, score_flat, weight)
-        plot_likelihood(
-            saved_info["beta"] + saved_info["gamma"],
-            saved_info["gamma"],
-            saved_info["beta"],
-            mu,
-            plot_show=False,
+        mu, del_mu_stat = likelihood_fit_mu_binned(
+            np.histogram(score, bins=BINS, weights=weight)[0],
+            saved_info["gamma_hist"],
+            saved_info["beta_hist"],
         )
-        plot_binned_likelihood(score, score_flat, weight, mu)
-        plot_binned_histrograms(score, score_flat, weight)
+
+        # mu_unbinned, _ = likelihood_fit_mu(
+        #     np.sum(score_flat * weight),
+        #     saved_info["gamma"],
+        #     saved_info["beta"],
+        #     1,
+        # )
+
+        # plot_likelihood(
+        #     np.sum(score_flat * weight),
+        #     saved_info["gamma"],
+        #     saved_info["beta"],
+        #     mu_unbinned,
+        #     plot_show=False,
+        # )
+        # plot_binned_likelihood(            
+        #     np.histogram(score, bins=BINS, weights=weight)[0],
+        #     saved_info["gamma_hist"],
+        #     saved_info["beta_hist"], 
+        #     mu,
+        # )
+        # plot_binned_histrograms(np.histogram(score, bins=BINS, weights=weight)[0],
+        #     saved_info["gamma_hist"],
+        #     saved_info["beta_hist"], 
+        # )
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
@@ -200,21 +220,35 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         plt.show()
 
     # Calculate saved_info with this optimised cutoff
-    score = score.flatten() > best_threshold
-    score = score.astype(int)
+    score_flat = score.flatten() > best_threshold
+    score_flat = score_flat.astype(int)
 
     label = holdout_set["labels"]
 
-    gamma = np.sum(holdout_set["weights"] * score * label)
+    gamma = np.sum(holdout_set["weights"] * score_flat * label)
 
-    beta = np.sum(holdout_set["weights"] * score * (1 - label))
+    beta = np.sum(holdout_set["weights"] * score_flat * (1 - label))
+
+    # Binned gamma and beta
+    signal_mask = label == 1
+    background_mask = label == 0
+
+    gamma_hist, _ = np.histogram(
+        score[signal_mask], bins=BINS, weights=holdout_set["weights"][signal_mask]
+    )
+
+    beta_hist, _ = np.histogram(
+        score[background_mask], bins=BINS, weights=holdout_set["weights"][background_mask]
+    )
 
     saved_info = {
         "beta": beta,
         "gamma": gamma,
-        #        "tes_fit": tes_fitter(model, holdout_set),
-        #        "jes_fit": jes_fitter(model, holdout_set),
+        # "tes_fit": tes_fitter(model, holdout_set),
+        # "jes_fit": jes_fitter(model, holdout_set),
         "best_threshold": best_threshold,
+        "gamma_hist": gamma_hist,
+        "beta_hist": beta_hist,
     }
 
     print("saved_info", saved_info)
@@ -252,29 +286,15 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
 
 
 def likelihood_fit_mu_binned(
-    score,
-    label,
-    weights,
+    N_obs,
+    gamma_hist,
+    beta_hist,
     mu_init=1.0,
 ):
 
-    bins = np.linspace(0, 1, 101)
-    # Masks
-    signal_mask = label == 1
-    background_mask = label == 0
-    # Binned histograms
-    S_hist, _ = np.histogram(
-        score[signal_mask], bins=bins, weights=weights[signal_mask]
-    )
-
-    B_hist, _ = np.histogram(
-        score[background_mask], bins=bins, weights=weights[background_mask]
-    )
-    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
-
     # Binned negative log-likelihood function
     def neg_ll(mu):
-        pred = mu * S_hist + B_hist
+        pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
         return -np.sum(N_obs * np.log(pred) - pred)
 
@@ -385,22 +405,10 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         plt.show()
 
 
-def plot_binned_likelihood(score, label, weights, mu_hat, plot_show=True):
-    bins = np.linspace(0, 1, 101)
-
-    signal_mask = label == 1
-    background_mask = label == 0
-
-    S_hist, _ = np.histogram(
-        score[signal_mask], bins=bins, weights=weights[signal_mask]
-    )
-    B_hist, _ = np.histogram(
-        score[background_mask], bins=bins, weights=weights[background_mask]
-    )
-    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True):
 
     def neg_ll(mu):
-        pred = mu * S_hist + B_hist
+        pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)
         return -np.sum(N_obs * np.log(pred) - pred)
 
@@ -467,24 +475,11 @@ def plot_binned_likelihood(score, label, weights, mu_hat, plot_show=True):
         plt.show()
 
 
-def plot_binned_histrograms(score, label, weights, plot_show=True, mu_init=1.0):
-    bins = np.linspace(0, 1, 101)
-    # Masks
-    signal_mask = label == 1
-    background_mask = label == 0
-    # Binned histograms
-    S_hist, _ = np.histogram(
-        score[signal_mask], bins=bins, weights=weights[signal_mask]
-    )
-
-    B_hist, _ = np.histogram(
-        score[background_mask], bins=bins, weights=weights[background_mask]
-    )
-    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+def plot_binned_histrograms(N_obs, gamma_hist, beta_hist, plot_show=True, mu_init=1.0):
 
     # Binned negative log-likelihood function
     def neg_ll(mu):
-        pred = mu * S_hist + B_hist
+        pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
         return -np.sum(N_obs * np.log(pred) - pred)
 
@@ -497,16 +492,16 @@ def plot_binned_histrograms(score, label, weights, plot_show=True, mu_init=1.0):
     m.hesse()
 
     plt.figure(figsize=(8, 5))
-    width = bins[1] - bins[0]
-    bin_centers = (bins[:-1] + bins[1:]) / 2
+    width = BINS[1] - BINS[0]
+    bin_centers = (BINS[:-1] + BINS[1:]) / 2
 
     plt.bar(
         bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
     )
-    plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
+    plt.step(bin_centers, beta_hist, where="mid", label="Background", color="orange")
     plt.step(
         bin_centers,
-        m.values["mu"] * S_hist + B_hist,
+        m.values["mu"] * gamma_hist + beta_hist,
         where="mid",
         label=f"Signal + Background (mu={m.values['mu']:.2f})",
         color="green",
