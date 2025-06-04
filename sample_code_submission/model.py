@@ -13,8 +13,8 @@ NN = True
 
 def _clean_saved_info(info):
     """
-    Retourne un dictionnaire nettoyé, où les objets non JSON-sérialisables
-    (comme les fonctions) sont convertis en chaîne de caractères.
+    Return a cleaned dictionary where objects not JSON serializable 
+    (like functions) are converted to strings.
     """
     cleaned = {}
     for key, value in info.items():
@@ -28,39 +28,31 @@ def _clean_saved_info(info):
 
 class Model:
     """
-    Dummy Sample Submission – implémente un modèle de classification.
+    Dummy Sample Submission – implements a classification model.
 
-    This class should consist of the following functions:
-    1) init :
-        takes 3 arguments: train_set, systematics, and model_type.
-        can be used for initializing variables, classifier, etc.
-    2) fit :
-        takes no arguments
-        can be used to train a classifier
-    3) predict:
-        takes 1 argument: test sets
-        can be used to get predictions of the test set.
-        returns a dictionary
-
-    Note: Add more methods if needed e.g. save model, load pre-trained model, etc.
+    The class should have the following methods:
+    1) __init__: receives a training set retriever, systematics function, and model type.
+    2) fit: used to train a classifier.
+    3) predict: receives a test set and returns a dictionary with:
+         - mu_hat: predicted mu
+         - delta_mu_hat: mu uncertainty bound
+         - p16: 16th percentile
+         - p84: 84th percentile
     """
 
     def __init__(self, get_train_set=None, systematics=None, model_type="NN"):
         """
-        Model class constructor
+        Constructor
 
         Params:
-            get_train_set: function to retrieve the training set
-            systematics: a function (or class) to apply systematics to the dataset.
-                         If None, an identity function is used.
+            get_train_set: function to retrieve the training set.
+            systematics: function (or class) to apply systematics to the dataset.
+                         Defaults to the identity function if None.
             model_type: type of model to use (e.g., "NN", "BDT", etc.)
-        Returns:
-            None
         """
-        # Définir systematics par défaut si non fourni.
         self.systematics = systematics if systematics is not None else lambda x: x
 
-        # Initialiser les datasets
+        # Initialize datasets
         indices = np.arange(15000)
         np.random.shuffle(indices)
         train_indices = indices[:5000]
@@ -94,15 +86,15 @@ class Model:
         }
         del holdout_df
 
-        # Chemin de sauvegarde/chargement du modèle
+        # Path for saving/loading the model
         self.model_dir = os.path.dirname(os.path.abspath(__file__))
         self.model_path = os.path.join(self.model_dir, "saved_model")
         self.model_type = model_type
 
-        # Initialiser saved_info (sera complété après entraînement)
+        # Initialize saved_info (will be updated after training)
         self.saved_info = {}
 
-        # Charger ou initialiser le modèle
+        # Load or initialize the model
         model_file = os.path.join(self.model_path, "model.h5")
         if os.path.exists(self.model_path) and os.path.exists(model_file):
             print("Loading pre-trained model...")
@@ -113,26 +105,18 @@ class Model:
             self.initialize_model()
             self.is_trained = False
 
-        # Set the name attribute
-        self.name = model_type  # Use the model type as the name
+        self.name = model_type
 
     def fit(self):
         """
-        Entraîner le modèle et sauvegarder saved_info.
-
-        Params:
-            None
-
-        Returns:
-            None
+        Train the model and save saved_info.
         """
         if self.is_trained:
             print("Model is already trained. Skipping training.")
             return
 
-        # Vérifiez que le modèle est initialisé
         if self.model is None:
-            raise ValueError("Model is not initialized. Ensure `initialize_model` or `load_model` is called.")
+            raise ValueError("Model is not initialized. Ensure 'initialize_model' or 'load_model' is called.")
 
         balanced_set = self.training_set.copy()
         weights_train = self.training_set["weights"].copy()
@@ -141,28 +125,27 @@ class Model:
             weights_train[train_labels == 0].sum(),
             weights_train[train_labels == 1].sum(),
         )
-
-        for i in range(len(class_weights_train)):  # loop on B then S target
+        for i in range(len(class_weights_train)):
             weights_train[train_labels == i] *= (max(class_weights_train) / class_weights_train[i])
         balanced_set["weights"] = weights_train
 
-        # Entraînement du modèle via l'instance de NeuralNetwork
+        # Train the model via the NeuralNetwork instance
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
 
-        # Calculer saved_info en utilisant l'instance du modèle et holdout_set
+        # Calculate saved_info using the model and holdout_set
         self.saved_info = calculate_saved_info(self.model, self.holdout_set)
 
-        # Sauvegarder le modèle et saved_info sur disque
+        # Save model and saved_info to disk
         self.save_model()
 
-        # Optionnel : appliquer systematics et recalculer saved_info
+        # Optional: apply systematics and recalculate saved_info
         self.holdout_set = self.systematics(self.holdout_set)
         self.training_set = self.systematics(self.training_set)
         self.saved_info = calculate_saved_info(self.model, self.holdout_set)
 
-        # Compute results (affichage pour debug)
+        # Compute results (debug display)
         train_score = self.model.predict(self.training_set["data"])
         train_results = compute_mu(train_score, self.training_set["weights"], self.saved_info)
         holdout_score = self.model.predict(self.holdout_set["data"])
@@ -182,24 +165,16 @@ class Model:
 
     def predict(self, test_set):
         """
-        Prédit sur test_set et retourne un dictionnaire de résultats.
+        Predict on test_set and return a result dictionary.
 
         Params:
-            test_set: dictionary containing test data and weights
-
-        Returns:
-            dict with keys:
-                - mu_hat
-                - delta_mu_hat
-                - p16
-                - p84
+            test_set: dict containing test data and weights.
         """
         test_data = test_set["data"]
         test_weights = test_set["weights"]
 
         predictions = self.model.predict(test_data)
 
-        # Vérifier que saved_info contient les clés attendues
         if "beta" not in self.saved_info:
             self.saved_info["beta"] = 0.0
         if "gamma" not in self.saved_info:
@@ -217,13 +192,11 @@ class Model:
 
     def save_model(self):
         """
-        Sauvegarder le modèle et saved_info sur disque.
+        Save the model and saved_info to disk.
         """
         if not os.path.exists(self.model_path):
             os.makedirs(self.model_path)
-        # Sauvegarder le modèle via la méthode de NeuralNetwork
         self.model.save_model(self.model_path)
-        # Sauvegarder saved_info dans un fichier JSON
         info_path = os.path.join(self.model_path, "saved_info.json")
         cleaned_info = _clean_saved_info(self.saved_info)
         with open(info_path, "w") as f:
@@ -232,11 +205,11 @@ class Model:
 
     def load_model(self):
         """
-        Charger un modèle pré-entraîné et saved_info depuis le disque.
+        Load a pre-trained model and saved_info from disk.
         """
         from neural_network import NeuralNetwork
 
-        self.model = NeuralNetwork()  # Initialiser sans données d'entraînement
+        self.model = NeuralNetwork()
         self.model.load_model(self.model_path)
         info_path = os.path.join(self.model_path, "saved_info.json")
         if os.path.exists(info_path):
@@ -251,11 +224,11 @@ class Model:
 
     def initialize_model(self):
         """
-        Initialiser un nouveau modèle selon le type.
+        Initialize a new model based on the type.
         """
         if self.model_type == "NN":
             from neural_network import NeuralNetwork
-            # Passer les données d'entraînement pour initialiser le neural network
+            # Pass training data to initialize the neural network
             self.model = NeuralNetwork(self.training_set["data"])
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")
