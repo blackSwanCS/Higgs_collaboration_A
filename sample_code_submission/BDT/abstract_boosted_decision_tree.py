@@ -3,6 +3,7 @@ from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import roc_auc_score
 import numpy as np
+from sklearn.metrics import roc_curve
 
 # library for structure
 from enum import Enum, auto
@@ -13,6 +14,8 @@ import json
 # constants
 from constants import *
 
+#Curves
+import matplotlib.pyplot as plt
 
 class BDT_Status(Enum):
     """
@@ -58,9 +61,9 @@ class AbstractBoostedDecisionTree(ABC):
         self.__handle_input_weight_and_labels(labels, weights)
         self.__status = BDT_Status.PREDICTED
 
-    def significance(self, test_labels=None, test_weights=None):
+    def vamsasimov(self, test_labels=None, test_weights=None):
         """
-        Calculate the significance of the predicted data using the AMS (A More Sensitive) method.
+        Calculate the tab of significance  for differents treshold of the predicted data using the AMS (A More Sensitive) method.
         """
 
         if self.__status != BDT_Status.PREDICTED:
@@ -104,12 +107,18 @@ class AbstractBoostedDecisionTree(ABC):
             significance = amsasimov(s_cumul, b_cumul)
             return significance
 
-        vamsasimov_xgb = significance_vscore(
+        vamsasimov = significance_vscore(
             y_true=self.__test_labels,
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-        return np.max(vamsasimov_xgb)
+        return vamsasimov
+    
+    def significance(self, test_labels=None, test_weights=None):
+        """
+        Calculate the significance of the predicted data using the AMS (A More Sensitive) method.
+        """
+        return np.max(self.vamsasimov( test_labels, test_weights))
 
     def auc(self, test_labels=None, test_weights=None):
         """
@@ -129,6 +138,44 @@ class AbstractBoostedDecisionTree(ABC):
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
+    
+    def roc_curve(self,test_labels=None,test_weights=None):
+        if self.__status != BDT_Status.PREDICTED:
+            raise ValueError(
+                "Model has not been fitted or predicted yet. Please call fit() and predict() before auc()."
+            )
+
+        # handle the case when labels and weights aren't provided during prediction (in the model class)
+        self.__handle_input_weight_and_labels(test_labels, test_weights)
+
+        fpr_xgb,tpr_xgb,_ = roc_curve(
+            y_true=self.__test_labels,
+            y_score=self._predicted_data,
+            sample_weight=self.__test_weights,
+        )
+        auc_test= self.auc(test_labels, test_weights)
+        plt.plot(fpr_xgb, tpr_xgb, color='darkgreen',lw=2, label='XGBoost (AUC  = {:.3f})'.format(auc_test))
+        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Background Efficiency')
+        plt.ylabel('Signal Efficiency')
+        plt.title(f'ROC curve for {self.name}')
+        plt.legend(loc="lower right")
+        plt.show()
+
+    def significance_curve(self, test_labels=None, test_weights=None):
+        vams=self.vamsasimov(test_labels, test_weights)
+        x = np.linspace(0, 1, num=len(vams))
+        significance=np.max(vams)
+        plt.plot(x, vams,label='(Z = {:.2f})'.format(significance))
+        plt.title(f"BDT Significance for {self.name} ")
+        plt.xlabel("Threshold")
+        plt.ylabel("Significance")
+        plt.legend()
+        plt.show()
+
+
 
     def __handle_input_weight_and_labels(self, labels=None, weights=None):
         """
