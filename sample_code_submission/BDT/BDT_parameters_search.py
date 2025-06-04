@@ -83,6 +83,7 @@ if __name__ == "__main__":
     print("\nBest parameters:")
     print(best_params)
     print(f"Best significance: {best_significance:.4f}")
+<<<<<<< HEAD
     print(f"AUC du modèle avec la best significance: {auc_best_significance:.4f}")
     csv_file_path = 'C:/Users/julie/Documents/CS/Cours/Black Swans/EI/donnees_500_550'
     with open (csv_file_path,mode='w',newline='') as file:
