@@ -16,8 +16,8 @@ class NeuralNetwork:
         n_dim = train_data.shape[1]
         #Vecteur de dimension n_dim en entrée
 
-        self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(10, activation="relu"))
+        self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
+        self.model.add(Dense(100, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -27,14 +27,16 @@ class NeuralNetwork:
         self.scaler = StandardScaler()
         #nouveau paramètres: 
         self.epochs = 5
+        self.batch_size = 50
 
     def fit(self, train_data, y_train, weights_train=None):
 
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
         self.model.fit(
-            X_train, y_train, sample_weight=weights_train, epochs=self.epochs, verbose=2
+            X_train, y_train, sample_weight=weights_train, epochs=self.epochs, batch_size = 16, verbose=2
         )
+    #valeur de batchsize venant d'un autre programme d'optimisation
     #epochs = nombre d'entraînement qu'on va faire
     #verbose = débugs, informations sur les entraînements, fonction de coût.
 
