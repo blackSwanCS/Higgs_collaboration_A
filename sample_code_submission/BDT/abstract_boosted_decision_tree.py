@@ -13,10 +13,12 @@ import json
 # constants
 from constants import *
 
+
 class BDT_Status(Enum):
     """
     Enum representing the status of the Boosted Decision Tree
     """
+
     NOT_FITTED = auto()
     FITTED = auto()
     PREDICTED = auto()
@@ -65,12 +67,12 @@ class AbstractBoostedDecisionTree(ABC):
             raise ValueError(
                 "Model has not been fitted or predict yet. Please call fit() and predict() before significance()."
             )
-        
+
         self.__handle_input_weight_and_labels(test_labels, test_weights)
         if self.__test_labels is None:
             raise ValueError(
                 "True labels for test data are not available. Please provide them when calling predict()."
-            )        
+            )
 
         def amsasimov(s_in, b_in):
             s = np.copy(s_in)
@@ -121,13 +123,13 @@ class AbstractBoostedDecisionTree(ABC):
 
         # handle the case when labels and weights aren't provided during prediction (in the model class)
         self.__handle_input_weight_and_labels(test_labels, test_weights)
-        
+
         return roc_auc_score(
             y_true=self.__test_labels,
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-    
+
     def __handle_input_weight_and_labels(self, labels=None, weights=None):
         """
         Handle the input labels and weights for training or prediction.

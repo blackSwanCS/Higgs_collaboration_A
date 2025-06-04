@@ -142,6 +142,7 @@ class Model:
 
         if model_type == "BDT":
             import sample_code_submission.BDT.boosted_decision_tree
+
             self.model = BDT.xgb_boosted_decision_tree.get_best_model()
         elif model_type == "NN":
             from neural_network import NeuralNetwork
@@ -204,8 +205,8 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        #self.model.significance(self.training_set["labels"], self.training_set["weights"])
-        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
+        # self.model.significance(self.training_set["labels"], self.training_set["weights"])
+        # self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
