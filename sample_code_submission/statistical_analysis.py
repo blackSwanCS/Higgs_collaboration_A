@@ -98,8 +98,8 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
 
     score = model.predict(holdout_set["data"])
 
-#    from systematic_analysis import tes_fitter
-#    from systematic_analysis import jes_fitter
+    #    from systematic_analysis import tes_fitter
+    #    from systematic_analysis import jes_fitter
 
     best_threshold = 0
 
@@ -202,8 +202,8 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     saved_info = {
         "beta": beta,
         "gamma": gamma,
-#        "tes_fit": tes_fitter(model, holdout_set),
-#        "jes_fit": jes_fitter(model, holdout_set),
+        #        "tes_fit": tes_fitter(model, holdout_set),
+        #        "jes_fit": jes_fitter(model, holdout_set),
         "best_threshold": best_threshold,
         "label": label,
     }
@@ -281,6 +281,7 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.tight_layout()
     plt.show()
 
+
 # Task 2: Systematic Uncertainty
 # from HiggsML.systematics import tes_fit, jes_fit
 
@@ -309,35 +310,36 @@ def plot_likelihood(n_obs, S, B, mu_hat):
 
 
 
-# def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-#     bins = np.linspace(0, 1, 11)
+def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-#     # Masks
-#     signal_mask = label == 1
-#     background_mask = label == 0
+    bins = np.linspace(0, 1, 11)
 
-#     # Binned histograms
-#     S_hist, _ = np.histogram(
-#         score[signal_mask], bins=bins, weights=weights[signal_mask]
-#     )
-#     B_hist, _ = np.histogram(
-#         score[background_mask], bins=bins, weights=weights[background_mask]
-#     )
-#     N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+    # Masks
+    signal_mask = label == 1
+    background_mask = label == 0
 
-#     # Binned negative log-likelihood function
-#     def neg_ll(mu):
-#         pred = mu * S_hist + B_hist
-#         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-#         return -np.sum(N_obs * np.log(pred) - pred)
+    # Binned histograms
+    S_hist, _ = np.histogram(
+        score[signal_mask], bins=bins, weights=weights[signal_mask]
+    )
+    B_hist, _ = np.histogram(
+        score[background_mask], bins=bins, weights=weights[background_mask]
+    )
+    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
 
-#     # Fit using Minuit
-#     m = Minuit(neg_ll, mu=mu_init)
-#     m.limits["mu"] = (0, None)
-#     m.errordef = Minuit.LIKELIHOOD
-    
-#     m.migrad()
-#     m.hesse()
+    # Binned negative log-likelihood function
+    def neg_ll(mu):
+        pred = mu * S_hist + B_hist
+        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
+        return -np.sum(N_obs * np.log(pred) - pred)
 
-#     return m.values["mu"], m.errors["mu"]
+    # Fit using Minuit
+    m = Minuit(neg_ll, mu=mu_init)
+    m.limits["mu"] = (0, None)
+    m.errordef = Minuit.LIKELIHOOD
+
+    m.migrad()
+    m.hesse()
+
+    return m.values["mu"], m.errors["mu"]
