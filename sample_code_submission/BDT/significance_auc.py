@@ -1,6 +1,6 @@
 import numpy as np
 from HiggsML.datasets import download_dataset
-from boosted_decision_tree import BoostedDecisionTree
+from xgb_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
@@ -31,7 +31,7 @@ def get_data():
 def evaluate(
     params, train_data, train_labels, train_weights, val_data, val_labels, val_weights
 ):
-    model = BoostedDecisionTree(params)
+    model = XGBBoostedDecisionTree(params)
     start_time = time()
     model.fit(train_data, train_labels, train_weights)
     end_time = time()
@@ -47,7 +47,7 @@ def test(n_estimator, max_depth, eta, subsample):
         get_data()
     )
     params = {
-        "n_estimators": np.int(n_estimator),
+        "n_estimators": np.int64(n_estimator),
         "max_depth": max_depth,
         "max_leaves": 0,
         "eta": eta,
@@ -71,4 +71,4 @@ def test(n_estimator, max_depth, eta, subsample):
     print(f"Significance: {significance:.4f},AUC : {auc}")
 
 
-test(325, 10, 0.1525, 0.875)
+test(450, 8, 0.1525, 0.875)
