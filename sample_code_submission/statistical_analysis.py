@@ -323,7 +323,7 @@ def likelihood_fit_mu_tes_jes(n_obs, tes_fit, jes_fit, mu_init=1.0, tes_init=1.0
 #################################################
 #                    PLOTS                      #
 #################################################
-def plot_likelihood(n_obs, S, B, mu_hat):
+def plot_likelihood(n_obs, S, B, mu_hat, plot_show = True):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)
@@ -385,10 +385,89 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    if plot_show :
+        plt.show()
 
+def plot_binned_likelihood(score, label, weights, mu_hat, plot_show = True) :
 
+    bins = np.linspace(0, 1, 101)
+    # Masks
+    signal_mask = label == 1
+    background_mask = label == 0
+    # Binned histograms
+    S_hist, _ = np.histogram(
+        score[signal_mask], bins=bins, weights=weights[signal_mask]
+    )
 
+    B_hist, _ = np.histogram(
+        score[background_mask], bins=bins, weights=weights[background_mask]
+    )
+    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
+
+    # Binned negative log-likelihood function
+    def neg_ll(mu):
+        pred = mu * S_hist + B_hist
+        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
+        return -np.sum(N_obs * np.log(pred) - pred)
+    
+    mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
+    nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
+
+    # Normalize to ΔNLL
+    nll_min = np.min(nll_vals)
+    delta_nll = nll_vals - nll_min
+
+    left_mask = mu_vals < mu_hat
+    right_mask = mu_vals > mu_hat
+
+    try:
+        # Interpolate to find where ΔNLL = 0.5
+        left_interp = interp1d(
+            delta_nll[left_mask],
+            mu_vals[left_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+        right_interp = interp1d(
+            delta_nll[right_mask],
+            mu_vals[right_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+
+        mu_lower = float(left_interp(0.5))
+        mu_upper = float(right_interp(0.5))
+        delta_mu = mu_upper - mu_lower
+    except Exception as e:
+        mu_lower = mu_hat
+        mu_upper = mu_hat
+        delta_mu = 0.0
+        print("Interpolation error:", e)
+
+    # Plot
+    plt.figure(figsize=(8, 5))
+    plt.plot(mu_vals, delta_nll, label=r"$\Delta$NLL", color="blue")
+    plt.axvline(mu_hat, color="red", linestyle="--", label=rf"$\hat\mu = {mu_hat:.3f}$")
+    plt.axvline(
+        mu_lower,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{-1\sigma}} = {mu_lower:.3f}$",
+    )
+    plt.axvline(
+        mu_upper,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{+1\sigma}} = {mu_upper:.3f}$",
+    )
+    plt.xlabel(r"$\mu$")
+    plt.ylabel(r"$\Delta$ Negative Log-Likelihood")
+    plt.title(rf"Profile Likelihood: $\delta\mu$ = {delta_mu:.3f}")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    if plot_show :
+        plt.show()
 
 
 
