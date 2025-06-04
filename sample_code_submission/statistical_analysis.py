@@ -374,15 +374,15 @@ def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
     width = bins[1] - bins[0]
     bin_centers = (bins[:-1] + bins[1:]) / 2
 
-    plt.bar(
-        bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
-    )
+    # plt.bar(
+    #     bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
+    # )
     plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
     plt.step(
         bin_centers,
-        mu_fit * S_hist + B_hist,
+        mu_fit * S_hist,
         where="mid",
-        label=f"Signal + Background (mu={mu_fit:.2f})",
+        label=f"Signal (mu={mu_fit:.2f})",
         color="green",
     )
 
@@ -390,7 +390,7 @@ def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
     plt.ylabel("Weighted Events")
     plt.legend()
     plt.grid(True)
-    plt.title("Binned Histogram: Observed vs Model Prediction")
+    plt.title("Binned Histogram")
     plt.tight_layout()
     plt.show()
     return m.values["mu"], m.errors["mu"]
