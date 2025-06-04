@@ -29,7 +29,7 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
         return self.predict_full_output(test_data, labels, weights)[:, 1]
 
     def predict_full_output(self, test_data, labels=None, weights=None):
-        super().predict(test_data, labels, weights)
+        super().predict_full_output(test_data, labels, weights)
         return self._model.predict_proba(self._scaler.transform(test_data))
 
     def load_model(self):
