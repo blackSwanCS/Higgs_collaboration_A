@@ -37,12 +37,15 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
 
     mu, del_mu_stat, del_mu_tot, del_mu_sys = (0, 0, 0, 0)
 
+    # Compute mu with counting method
     if method == "Counting":
-        mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
-        del_mu_stat = (
-            np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
+        mu, del_mu_stat = counting_mu(
+            score,
+            weight,
+            saved_info
         )
 
+    # Compute mu with Likelihood method
     elif method == "Likelihood":
         mu, del_mu_stat = likelihood_fit_mu(
             saved_info["beta"] + saved_info["gamma"],
@@ -56,18 +59,29 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             saved_info["beta"],
             mu,
         )
+
+    # Compute mu with likelihood and tes and jes
     elif method == "Likelihood+Systematics":
-        mu, del_mu_tot = likelihood_fit_mu_tes_jes(
+        mu, del_mu_stat = likelihood_fit_mu_tes_jes(
         saved_info["beta"] + saved_info["gamma"],
         saved_info["tes_fit"],
         saved_info["jes_fit"],
         1.0, 1.0, 1.0
     )
 
+    # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
-        mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
+        mu, del_mu_stat = likelihood_fit_mu_binned(
+            score,
+            saved_info["label"],
+            weight
+    )
+
+    # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
     del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
+
+    # Return results
     return {
         "mu_hat": mu,
         "del_mu_stat": del_mu_stat,
@@ -203,6 +217,15 @@ from iminuit import Minuit
 import matplotlib.pyplot as plt
 
 
+def counting_mu(score, weight, saved_info) :
+    mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
+    del_mu_stat = (
+        np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
+    )
+    return mu, del_mu_stat
+
+
+
 def neg_ll(mu, n_obs, S, B):
 
     n_pred = mu * S + B
@@ -283,6 +306,7 @@ def plot_likelihood(n_obs, S, B, mu_hat):
 #     m.hesse()
 
 #     return m.values["mu"], m.errors["mu"]
+
 
 
 # def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
