@@ -1,0 +1,40 @@
+# library for calculation
+from xgboost import XGBClassifier
+
+# constants
+from constants import *
+
+# Objects
+from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+
+
+
+class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
+    """
+    This class implements a boosted decision tree model using XGBoost
+    """
+
+    def __init__(self, params=None):
+        super().__init__("XGBBoostedDecisionTree")
+        if params is None:
+            self._model = XGBClassifier(n_jobs=THREADS_NUMBER, tree_method='gpu_hist', gpu_id=0)
+        else:
+            self._model = XGBClassifier(**params, n_jobs=THREADS_NUMBER, tree_method='gpu_hist', gpu_id=0)
+
+    def fit(self, train_data, labels, weights=None):
+        super().fit(train_data, labels, weights)
+        self._model.fit(self._scaler.transform(train_data), self._labels, self._weights)
+
+    def predict(self, test_data, labels=None, weights=None):
+        super().predict(test_data, labels, weights)
+        self._predicted_data = self._model.predict_proba(self._scaler.transform(test_data))[:, 1]
+        return self._predicted_data
+
+    def load_model(self):
+        super().load_model()
+        self._model.load_model(BEST_BDT_MODEL_PATH + ".json")
+
+    def save(self):
+        super().save()
+        self._model.save_model(BEST_BDT_MODEL_PATH + ".json")
+        
