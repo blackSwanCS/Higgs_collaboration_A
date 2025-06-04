@@ -197,9 +197,8 @@ class Model:
 
         self.holdout_set = self.systematics(self.holdout_set)
 
-        self.saved_info = calculate_saved_info(self.model, self.holdout_set)
-
         self.training_set = self.systematics(self.training_set)
+        self.saved_info = calculate_saved_info(self.model, self.training_set)
 
         # Compute  Results
         train_score = self.model.predict(self.training_set["data"])
