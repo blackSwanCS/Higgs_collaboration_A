@@ -1,4 +1,4 @@
-from boosted_decision_tree import AbstractBoostedDecisionTree
+from BDT.boosted_decision_tree import AbstractBoostedDecisionTree
 from tabpfn import PFNClassifier
 
 
@@ -28,4 +28,6 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
 
     def predict_full_output(self, test_data, labels=None, weights=None):
         super().predict_full_output(test_data, labels, weights)
-        return self._model.predict_proba(self._scaler.transform(test_data))
+        temp = self._model.predict_proba(self._scaler.transform(test_data))
+        self._predicted_data = temp[:, 1]
+        return temp

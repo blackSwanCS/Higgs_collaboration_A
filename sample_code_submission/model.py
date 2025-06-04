@@ -56,13 +56,13 @@ class Model:
             None
         """
 
-        indices = np.arange(15000)
+        indices = np.arange(1_400_000)
 
         np.random.shuffle(indices)
 
-        train_indices = indices[:5000]
-        holdout_indices = indices[5000:10000]
-        valid_indices = indices[10000:]
+        train_indices = indices[:1_350_000]
+        holdout_indices = indices[1_350_000:1_360_000]
+        valid_indices = indices[1_360_000:]
 
         training_df = get_train_set(selected_indices=train_indices)
 
@@ -192,6 +192,8 @@ class Model:
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
+
+        # self.model.save()
 
         self.holdout_set = self.systematics(self.holdout_set)
 

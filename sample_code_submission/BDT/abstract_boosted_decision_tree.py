@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from constants import *
+from BDT.constants import *
 
 # Curves
 import matplotlib.pyplot as plt

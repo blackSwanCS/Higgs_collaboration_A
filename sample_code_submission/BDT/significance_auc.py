@@ -1,6 +1,6 @@
 import numpy as np
 from HiggsML.datasets import download_dataset
-from xgb_boosted_decision_tree import XGBBoostedDecisionTree
+from BDT.xgb_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
