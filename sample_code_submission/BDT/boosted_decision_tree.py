@@ -1,5 +1,6 @@
 import xgb_boosted_decision_tree
 import constants
+import xgb_boosted_decision_tree
 import numpy as np
 
 
@@ -29,7 +30,7 @@ def get_best_model():
         "use_label_encoder": False,
         "eval_metric": "logloss",
         "eta": np.float64(0.15525),
-        "subsample": "0.9375",
+        "subsample": "np.float64(0.9375)",
     }
     return BDT.xgb_boosted_decision_tree.XGBBoostedDecisionTree(params)
     """
