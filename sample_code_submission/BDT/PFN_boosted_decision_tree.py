@@ -22,7 +22,8 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
         )
 
     def predict(self, test_data, labels=None, weights=None):
-        return self.predict_full_output(test_data, labels, weights)[:, 1]
+        self._predicted_data = self.predict_full_output(test_data, labels, weights)[:, 1]
+        return self._predicted_data
 
     def predict_full_output(self, test_data, labels=None, weights=None):
         super().predict_full_output(test_data, labels, weights)
@@ -39,9 +40,13 @@ if __name__ == "__main__":
             get_data()
         )
     
-    train_data = train_data[:10000]
-    train_labels = train_labels[:10000]
-    train_weights = train_weights[:10000]
+#    train_data = train_data[:1000]
+#    train_labels = train_labels[:1000]
+#    train_weights = train_weights[:1000]
+    
+#    val_data = val_data[:500]
+#    val_labels = val_labels[:500]
+#    val_weights = val_weights[:500]
     
     model = PFN_boosted_decision_tree()
     t0 = time()
@@ -51,6 +56,6 @@ if __name__ == "__main__":
     print(f"Fitting time: {t1 - t0:.2f} seconds")
     model.predict(val_data, val_labels, val_weights)
     significance = model.significance()
-    auc = model.auc(val_data, val_labels, val_weights)
+    auc = model.auc(val_labels, val_weights)
     print(f"AUC: {auc:.4f}")
     print(f"Significance: {significance:.4f}")
