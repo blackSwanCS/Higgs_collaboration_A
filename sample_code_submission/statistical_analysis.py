@@ -24,7 +24,7 @@ Task 2 : Systematic Uncertainty
 """
 
 
-def compute_mu(score, weight, saved_info, method="Likelihood"):
+def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -68,6 +68,7 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
 
     elif method == "Binned_Likelihood":
         mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
+
     del_mu_sys = abs(0.0 * mu)
     del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
     return {
@@ -181,8 +182,6 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
 
     label = holdout_set["labels"]
 
-    print("score shape after threshold", score.shape)
-
     gamma = np.sum(holdout_set["weights"] * score * label)
 
     beta = np.sum(holdout_set["weights"] * score * (1 - label))
@@ -290,16 +289,15 @@ def plot_likelihood(n_obs, S, B, mu_hat):
 
 def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-    bins = np.linspace(0, 1, 11)
-
+    bins = np.linspace(0, 1, 101)
     # Masks
     signal_mask = label == 1
     background_mask = label == 0
-
     # Binned histograms
     S_hist, _ = np.histogram(
         score[signal_mask], bins=bins, weights=weights[signal_mask]
     )
+
     B_hist, _ = np.histogram(
         score[background_mask], bins=bins, weights=weights[background_mask]
     )
@@ -319,4 +317,30 @@ def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
     m.migrad()
     m.hesse()
 
+    mu_fit = m.values["mu"]
+    mu_err = m.errors["mu"]
+
+    plt.figure(figsize=(8, 5))
+    width = bins[1] - bins[0]
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+
+    plt.bar(
+        bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
+    )
+    plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
+    plt.step(
+        bin_centers,
+        mu_fit * S_hist + B_hist,
+        where="mid",
+        label=f"Signal + Background (mu={mu_fit:.2f})",
+        color="green",
+    )
+
+    plt.xlabel("Score")
+    plt.ylabel("Weighted Events")
+    plt.legend()
+    plt.grid(True)
+    plt.title("Binned Histogram: Observed vs Model Prediction")
+    plt.tight_layout()
+    plt.show()
     return m.values["mu"], m.errors["mu"]
