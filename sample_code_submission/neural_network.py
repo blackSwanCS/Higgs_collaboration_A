@@ -15,9 +15,9 @@ class NeuralNetwork:
 
         n_dim = train_data.shape[1]
         #Vecteur de dimension n_dim en entrée
-
-        self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(10, activation="relu"))
+        self.activation = "relu"
+        self.model.add(Dense(100, input_dim=n_dim, activation=self.activation))
+        self.model.add(Dense(100, activation=self.activation))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -26,7 +26,8 @@ class NeuralNetwork:
         #Simule la fonction de perte
         self.scaler = StandardScaler()
         #nouveau paramètres: 
-        self.epochs = 5
+        self.epochs = 50
+
 
     def fit(self, train_data, y_train, weights_train=None):
 
