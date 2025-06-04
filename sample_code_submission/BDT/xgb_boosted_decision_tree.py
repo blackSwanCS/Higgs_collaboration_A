@@ -2,10 +2,10 @@
 from xgboost import XGBClassifier
 
 # constants
-from constants import *
+from BDT.constants import *
 
 # Objects
-from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+from BDT.abstract_boosted_decision_tree import AbstractBoostedDecisionTree
 
 
 class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
@@ -16,16 +16,13 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
     def __init__(self, params=None):
         super().__init__("XGBBoostedDecisionTree")
         if params is None:
-            self._model = XGBClassifier(
-                n_jobs=THREADS_NUMBER, tree_method="gpu_hist", gpu_id=0
-            )
+            self._model = XGBClassifier(n_jobs=THREADS_NUMBER)
         else:
-            self._model = XGBClassifier(
-                **params, n_jobs=THREADS_NUMBER, tree_method="gpu_hist", gpu_id=0
-            )
+            self._model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
 
     def fit(self, train_data, labels, weights=None):
-        super().fit(train_data, labels, weights)
+        if super().fit(train_data, labels, weights):
+            return
         self._model.fit(self._scaler.transform(train_data), self._labels, self._weights)
 
     def predict(self, test_data, labels=None, weights=None):

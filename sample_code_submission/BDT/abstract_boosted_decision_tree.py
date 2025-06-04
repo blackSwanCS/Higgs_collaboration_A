@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from constants import *
+from BDT.constants import *
 
 
 class BDT_Status(Enum):
@@ -42,12 +42,13 @@ class AbstractBoostedDecisionTree(ABC):
     def fit(self, train_data, labels, weights=None):
         if self.__status != BDT_Status.NOT_FITTED:
             warnings.warn("Model has already been fitted, skipping fiting", UserWarning)
-            return
+            return True
 
         self._scaler.fit_transform(train_data)
         self._labels = labels
         self._weights = weights
         self.__status = BDT_Status.FITTED
+        return False
 
     @abstractmethod
     def predict(self, test_data, labels=None, weights=None):

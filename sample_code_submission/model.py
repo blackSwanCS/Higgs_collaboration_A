@@ -141,9 +141,9 @@ class Model:
         print(f"DEBUG: model_type = {repr(model_type)}")
 
         if model_type == "BDT":
-            import sample_code_submission.BDT.boosted_decision_tree
+            import BDT.boosted_decision_tree
 
-            self.model = BDT.xgb_boosted_decision_tree.get_best_model()
+            self.model = BDT.boosted_decision_tree.get_best_model()
         elif model_type == "NN":
             from neural_network import NeuralNetwork
 
@@ -205,13 +205,23 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        # self.model.significance(self.training_set["labels"], self.training_set["weights"])
-        # self.model.auc(self.training_set["labels"], self.training_set["weights"])
-
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
+
+        """
+        print(
+            "Significance",
+            self.model.significance(
+                self.holdout_set["labels"], self.holdout_set["weights"]
+            ),
+        )
+        print(
+            "AUC",
+            self.model.auc(self.holdout_set["labels"], self.holdout_set["weights"]),
+        )
+        """
 
         self.valid_set = self.systematics(self.valid_set)
 
