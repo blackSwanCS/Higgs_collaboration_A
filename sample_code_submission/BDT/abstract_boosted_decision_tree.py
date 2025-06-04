@@ -14,8 +14,9 @@ import json
 # constants
 from BDT.constants import *
 
-#Curves
+# Curves
 import matplotlib.pyplot as plt
+
 
 class BDT_Status(Enum):
     """
@@ -55,6 +56,10 @@ class AbstractBoostedDecisionTree(ABC):
 
     @abstractmethod
     def predict(self, test_data, labels=None, weights=None):
+        pass
+
+    @abstractmethod
+    def predict_full_output(self, test_data, labels=None, weights=None):
         if self.__status == BDT_Status.NOT_FITTED:
             raise ValueError(
                 "Model has not been fitted yet. Please call fit() before predict()."
@@ -114,12 +119,12 @@ class AbstractBoostedDecisionTree(ABC):
             sample_weight=self.__test_weights,
         )
         return vamsasimov
-    
+
     def significance(self, test_labels=None, test_weights=None):
         """
         Calculate the significance of the predicted data using the AMS (A More Sensitive) method.
         """
-        return np.max(self.vamsasimov( test_labels, test_weights))
+        return np.max(self.vamsasimov(test_labels, test_weights))
 
     def auc(self, test_labels=None, test_weights=None):
         """
@@ -139,8 +144,8 @@ class AbstractBoostedDecisionTree(ABC):
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-    
-    def roc_curve(self,test_labels=None,test_weights=None):
+
+    def roc_curve(self, test_labels=None, test_weights=None):
         if self.__status != BDT_Status.PREDICTED:
             raise ValueError(
                 "Model has not been fitted or predicted yet. Please call fit() and predict() before auc()."
@@ -149,34 +154,38 @@ class AbstractBoostedDecisionTree(ABC):
         # handle the case when labels and weights aren't provided during prediction (in the model class)
         self.__handle_input_weight_and_labels(test_labels, test_weights)
 
-        fpr_xgb,tpr_xgb,_ = roc_curve(
+        fpr_xgb, tpr_xgb, _ = roc_curve(
             y_true=self.__test_labels,
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-        auc_test= self.auc(test_labels, test_weights)
-        plt.plot(fpr_xgb, tpr_xgb, color='darkgreen',lw=2, label='XGBoost (AUC  = {:.3f})'.format(auc_test))
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+        auc_test = self.auc(test_labels, test_weights)
+        plt.plot(
+            fpr_xgb,
+            tpr_xgb,
+            color="darkgreen",
+            lw=2,
+            label="XGBoost (AUC  = {:.3f})".format(auc_test),
+        )
+        plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
-        plt.xlabel('Background Efficiency')
-        plt.ylabel('Signal Efficiency')
-        plt.title(f'ROC curve for {self.name}')
+        plt.xlabel("Background Efficiency")
+        plt.ylabel("Signal Efficiency")
+        plt.title(f"ROC curve for {self.name}")
         plt.legend(loc="lower right")
         plt.show()
 
     def significance_curve(self, test_labels=None, test_weights=None):
-        vams=self.vamsasimov(test_labels, test_weights)
+        vams = self.vamsasimov(test_labels, test_weights)
         x = np.linspace(0, 1, num=len(vams))
-        significance=np.max(vams)
-        plt.plot(x, vams,label='(Z = {:.2f})'.format(significance))
+        significance = np.max(vams)
+        plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
         plt.title(f"BDT Significance for {self.name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
         plt.legend()
         plt.show()
-
-
 
     def __handle_input_weight_and_labels(self, labels=None, weights=None):
         """

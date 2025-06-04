@@ -1,5 +1,4 @@
 import BDT.xgb_boosted_decision_tree
-import BDT.constants
 import numpy as np
 
 

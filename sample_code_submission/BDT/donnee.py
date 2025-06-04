@@ -1,5 +1,7 @@
 from HiggsML.datasets import download_dataset
 import numpy as np
+
+
 def get_data():
     data = download_dataset("blackSwan_data")
     data.load_train_set()
