@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from BDT.constants import *
+from constants import *
 
 
 class BDT_Status(Enum):
