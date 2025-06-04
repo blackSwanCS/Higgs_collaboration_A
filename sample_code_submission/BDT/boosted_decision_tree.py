@@ -10,7 +10,6 @@ def get_best_model():
     model = BDT.xgb_boosted_decision_tree.XGBBoostedDecisionTree()
     model.load_model()
     return model
-
     """
     params = {
         "n_estimators": np.int64(236),
@@ -28,7 +27,7 @@ def get_best_model():
         "use_label_encoder": False,
         "eval_metric": "logloss",
         "eta": np.float64(0.15525),
-        "subsample": "np.float64(0.9375)",
+        "subsample": np.float64(0.9375),
     }
     return BDT.xgb_boosted_decision_tree.XGBBoostedDecisionTree(params)
     """
