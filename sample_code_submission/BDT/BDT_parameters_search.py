@@ -1,7 +1,7 @@
 import csv
 import numpy as np
 from HiggsML.datasets import download_dataset
-from boosted_decision_tree import BoostedDecisionTree
+from sample_code_submission.BDT.xgb_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
@@ -32,7 +32,7 @@ def get_data():
 def evaluate_significance(
     params, train_data, train_labels, train_weights, val_data, val_labels, val_weights
 ):
-    model = BoostedDecisionTree(params)
+    model = XGBBoostedDecisionTree(params)
     start_time = time()
     model.fit(train_data, train_labels, train_weights)
     end_time = time()
