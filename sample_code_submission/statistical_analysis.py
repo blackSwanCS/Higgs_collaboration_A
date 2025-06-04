@@ -24,7 +24,7 @@ Task 2 : Systematic Uncertainty
 """
 
 
-def compute_mu(score, weight, saved_info, method="Likelihood"):
+def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -73,9 +73,10 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
     elif method == "Binned_Likelihood":
         mu, del_mu_stat = likelihood_fit_mu_binned(
             score,
-            saved_info["label"],
+            label,
             weight
     )
+        print("BINNED LIKELIHOOD : ", mu, del_mu_stat)
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
@@ -205,7 +206,6 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         #        "tes_fit": tes_fitter(model, holdout_set),
         #        "jes_fit": jes_fitter(model, holdout_set),
         "best_threshold": best_threshold,
-        "label": label,
     }
 
     print("saved_info", saved_info)
