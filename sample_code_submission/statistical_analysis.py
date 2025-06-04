@@ -33,7 +33,7 @@ Task 2 : Systematic Uncertainty
 #################################################
 
 
-def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
+def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -41,14 +41,14 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
 
     """
 
-    score = score.flatten() > saved_info["best_threshold"]
-    score = score.astype(int)
+    score_flat = score.flatten() > saved_info["best_threshold"]
+    score_flat = score_flat.astype(int)
 
     mu, del_mu_stat, del_mu_tot, del_mu_sys = (0, 0, 0, 0)
 
     # Compute mu with counting method
     if method == "Counting":
-        mu, del_mu_stat = counting_mu(score, weight, saved_info)
+        mu, del_mu_stat = counting_mu(score_flat, weight, saved_info)
 
     # Compute mu with Likelihood method
     elif method == "Likelihood":
@@ -78,7 +78,7 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
 
     # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
-        mu, del_mu_stat = likelihood_fit_mu_binned(score, label, weight)
+        mu, del_mu_stat = likelihood_fit_mu_binned(score, score_flat, weight)
         plot_likelihood(
             saved_info["beta"] + saved_info["gamma"],
             saved_info["gamma"],
@@ -86,8 +86,8 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
             mu,
             plot_show=False,
         )
-        plot_binned_likelihood(score, label, weight, mu)
-        plot_binned_histrograms(score, label, weight)
+        plot_binned_likelihood(score, score_flat, weight, mu)
+        plot_binned_histrograms(score, score_flat, weight)
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
