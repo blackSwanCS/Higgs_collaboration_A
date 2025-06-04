@@ -2,10 +2,10 @@
 from xgboost import XGBClassifier
 
 # constants
-from BDT.constants import *
+from constants import *
 
 # Objects
-from BDT.abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
 
 
 class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
