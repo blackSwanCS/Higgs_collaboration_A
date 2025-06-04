@@ -1,0 +1,5 @@
+A l'aide des programmes d'optimisations :
+
+- batchsize : 16
+- epoch : 50
+- activation function : 
