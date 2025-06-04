@@ -69,7 +69,7 @@ def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
 
     # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
-        mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
+        mu, del_mu_stat = likelihood_fit_mu_binned(score, label, weight)
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
