@@ -56,13 +56,13 @@ class Model:
             None
         """
 
-        indices = np.arange(15000)
+        indices = np.arange(100000)
 
         np.random.shuffle(indices)
 
-        train_indices = indices[:5000]
-        holdout_indices = indices[5000:10000]
-        valid_indices = indices[10000:]
+        train_indices = indices[:80000]
+        holdout_indices = indices[80000:90000]
+        valid_indices = indices[90000:]
 
         training_df = get_train_set(selected_indices=train_indices)
 
@@ -205,8 +205,9 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        self.model.significance(self.training_set["labels"], self.training_set["weights"])
-        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
+        sig = self.model.significance(self.training_set["labels"], self.training_set["weights"])
+        print("Significance on training set:", sig)
+        # self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(

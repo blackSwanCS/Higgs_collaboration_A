@@ -1,7 +1,9 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import roc_auc_score
 import numpy as np
+
 
 class NeuralNetwork:
     """
@@ -24,13 +26,39 @@ class NeuralNetwork:
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
         )
         self.scaler = StandardScaler()
+        # nouveau paramètres:
+        self.epochs = 5
 
     def fit(self, train_data, y_train, weights_train=None):
         # Fit the scaler on the training data
-        self.scaler.fit_transform(train_data)
+        self.scaler.fit(train_data)
         X_train = self.scaler.transform(train_data)
-        # Fit the model using the transformed data
-        self.model.fit(X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2)
+        
+        best_sig = -np.inf
+        best_weights = None
+        
+        # Run training in a loop for the desired number of epochs
+        for epoch in range(self.epochs):
+            print(f"Epoch {epoch+1}/{self.epochs}")
+            # Train for a single epoch
+            self.model.fit(
+                X_train, y_train, sample_weight=weights_train, epochs=1, verbose=1
+            )
+            # Compute predictions on the training data (or any validation set)
+            preds = self.model.predict(X_train).flatten().ravel()
+            # Store predictions for significance calculation
+            self.__predicted_data = preds
+            # Compute significance using the current predictions
+            sig = self.significance(test_labels=y_train, test_weights=weights_train)
+            print(f"Epoch {epoch+1} significance: {sig}")
+            # Optionally, keep the best model (largest significance)
+            if sig > best_sig:
+                best_sig = sig
+                best_weights = self.model.get_weights()
+        
+        if best_weights is not None:
+            print(f"Best significance achieved: {best_sig}")
+            self.model.set_weights(best_weights)
 
     def predict(self, test_data, labels=None, weights=None):
         test_data = self.scaler.transform(test_data)
@@ -54,19 +82,25 @@ class NeuralNetwork:
         if test_weights is not None:
             self.__test_weights = np.asarray(test_weights)
         if self.__test_labels is None:
-            raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
-        
+            raise ValueError(
+                "True labels for test data are not available. Please provide them when calling predict()."
+            )
+
         # --- Patch: Align arrays to the smallest length ---
         pred_data = self.__predicted_data
         test_labels_arr = np.array(self.__test_labels)
         test_weights_arr = np.array(self.__test_weights)
         n = min(pred_data.shape[0], test_labels_arr.shape[0], test_weights_arr.shape[0])
-        if pred_data.shape[0] != n or test_labels_arr.shape[0] != n or test_weights_arr.shape[0] != n:
+        if (
+            pred_data.shape[0] != n
+            or test_labels_arr.shape[0] != n
+            or test_weights_arr.shape[0] != n
+        ):
             pred_data = pred_data[:n]
             test_labels_arr = test_labels_arr[:n]
             test_weights_arr = test_weights_arr[:n]
         # -------------------------------------------------------
-        
+
         def __amsasimov(s_in, b_in):
             s = np.copy(s_in)
             b = np.copy(b_in)
@@ -102,3 +136,4 @@ class NeuralNetwork:
             sample_weight=test_weights_arr,
         )
         return np.max(vamsasimov_xgb)
+
