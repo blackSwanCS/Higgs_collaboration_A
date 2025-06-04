@@ -10,7 +10,7 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
 
     def __init__(self):
         super().__init__("PFNBoostedDecisionTree")
-        self._model = TabPFNClassifier()
+        self._model = TabPFNClassifier(ignore_pretraining_limits=True)
 
     def fit(self, train_data, labels, weights=None):
         if super().fit(train_data, labels, weights):
@@ -18,7 +18,7 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
         self._model.fit(
             self._scaler.transform(train_data),
             self._labels,
-            sample_weight=self._weights,
+#            sample_weight=self._weights,
         )
 
     def predict(self, test_data, labels=None, weights=None):
@@ -38,11 +38,19 @@ if __name__ == "__main__":
     train_data, train_labels, train_weights, val_data, val_labels, val_weights = (
             get_data()
         )
+    
+    train_data = train_data[:10000]
+    train_labels = train_labels[:10000]
+    train_weights = train_weights[:10000]
+    
     model = PFN_boosted_decision_tree()
     t0 = time()
     model.fit(train_data, train_labels, train_weights)
     t1 = time()
-    print(f"Fitting time: {t1 - t0:.2f} seconds")
-    significance = model.significance()
     model.save()
-    print(significance)
+    print(f"Fitting time: {t1 - t0:.2f} seconds")
+    model.predict(val_data, val_labels, val_weights)
+    significance = model.significance()
+    auc = model.auc(val_data, val_labels, val_weights)
+    print(f"AUC: {auc:.4f}")
+    print(f"Significance: {significance:.4f}")
