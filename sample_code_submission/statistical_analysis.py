@@ -1,5 +1,9 @@
 import numpy as np
 from HiggsML.systematics import systematics
+from iminuit import Minuit
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+# from HiggsML.systematics import tes_fit, jes_fit
 
 """
 Task 1a : Counting Estimator
@@ -22,6 +26,10 @@ Task 2 : Systematic Uncertainty
 4. return the mu and its uncertainty
 
 """
+
+#################################################
+#               MAIN FUNCTIONS                  #
+#################################################
 
 
 def compute_mu(score, weight, label, saved_info, method="Binned_Likelihood"):
@@ -204,9 +212,10 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     return saved_info
 
 
-from iminuit import Minuit
-import matplotlib.pyplot as plt
 
+#################################################
+#             HELPER FUNCTIONS                  #
+#################################################
 
 def counting_mu(score, weight, saved_info):
     mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
@@ -214,16 +223,6 @@ def counting_mu(score, weight, saved_info):
         np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
     )
     return mu, del_mu_stat
-
-
-def neg_ll(mu, n_obs, S, B):
-
-    n_pred = mu * S + B
-    n_pred = np.clip(n_pred, 1e-10, None)  # to prevent log(0)
-    neg_ll = -np.sum(n_obs * np.log(n_pred) - n_pred)
-
-    return neg_ll
-
 
 def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
@@ -240,10 +239,90 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
 
     return m.values["mu"], m.errors["mu"]
 
+def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-from scipy.interpolate import interp1d
+    bins = np.linspace(0, 1, 101)
+    # Masks
+    signal_mask = label == 1
+    background_mask = label == 0
+    # Binned histograms
+    S_hist, _ = np.histogram(
+        score[signal_mask], bins=bins, weights=weights[signal_mask]
+    )
 
+    B_hist, _ = np.histogram(
+        score[background_mask], bins=bins, weights=weights[background_mask]
+    )
+    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
 
+    # Binned negative log-likelihood function
+    def neg_ll(mu):
+        pred = mu * S_hist + B_hist
+        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
+        return -np.sum(N_obs * np.log(pred) - pred)
+
+    # Fit using Minuit
+    m = Minuit(neg_ll, mu=mu_init)
+    m.limits["mu"] = (0, None)
+    m.errordef = Minuit.LIKELIHOOD
+
+    m.migrad()
+    m.hesse()
+
+    mu_fit = m.values["mu"]
+    mu_err = m.errors["mu"]
+
+    plt.figure(figsize=(8, 5))
+    width = bins[1] - bins[0]
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+
+    plt.bar(
+        bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
+    )
+    plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
+    plt.step(
+        bin_centers,
+        mu_fit * S_hist + B_hist,
+        where="mid",
+        label=f"Signal + Background (mu={mu_fit:.2f})",
+        color="green",
+    )
+
+    plt.xlabel("Score")
+    plt.ylabel("Weighted Events")
+    plt.legend()
+    plt.grid(True)
+    plt.title("Binned Histogram: Observed vs Model Prediction")
+    plt.tight_layout()
+    plt.show()
+    return m.values["mu"], m.errors["mu"]
+
+def likelihood_fit_mu_tes_jes(n_obs, tes_fit, jes_fit, mu_init=1.0, tes_init=1.0, jes_init=1.0):
+    """
+    Likelihood fit profiling over mu, tes, and jes.
+    tes_fit and jes_fit should be callables/functions that return beta and gamma for given tes, jes.
+    """
+    def neg_ll(mu, tes, jes):
+        # Get beta and gamma from the fit functions
+        beta = tes_fit(tes)
+        gamma = jes_fit(jes)
+        lam = mu * gamma + beta
+        lam = np.clip(lam, 1e-10, None)
+        return -(n_obs * np.log(lam) - lam)
+
+    m = Minuit(neg_ll, mu=mu_init, tes=tes_init, jes=jes_init)
+    m.limits["mu"] = (0, None)
+    m.limits["tes"] = (0.5, 1.5)  # Adjust as appropriate
+    m.limits["jes"] = (0.5, 1.5)  # Adjust as appropriate
+    m.errordef = Minuit.LIKELIHOOD
+    m.migrad()
+    m.hesse()
+
+    return m.values["mu"], m.errors["mu"]
+
+#################################################
+#                    PLOTS                      #
+#################################################
 def plot_likelihood(n_obs, S, B, mu_hat):
     def neg_ll(mu):
         lam = mu * S + B
@@ -309,87 +388,9 @@ def plot_likelihood(n_obs, S, B, mu_hat):
     plt.show()
 
 
-# Task 2: Systematic Uncertainty
-# from HiggsML.systematics import tes_fit, jes_fit
-
-# def likelihood_fit_mu_tes_jes(n_obs, tes_fit, jes_fit, mu_init=1.0, tes_init=1.0, jes_init=1.0):
-#     """
-#     Likelihood fit profiling over mu, tes, and jes.
-#     tes_fit and jes_fit should be callables/functions that return beta and gamma for given tes, jes.
-#     """
-#     def neg_ll(mu, tes, jes):
-#         # Get beta and gamma from the fit functions
-#         beta = tes_fit(tes)
-#         gamma = jes_fit(jes)
-#         lam = mu * gamma + beta
-#         lam = np.clip(lam, 1e-10, None)
-#         return -(n_obs * np.log(lam) - lam)
-
-#     m = Minuit(neg_ll, mu=mu_init, tes=tes_init, jes=jes_init)
-#     m.limits["mu"] = (0, None)
-#     m.limits["tes"] = (0.5, 1.5)  # Adjust as appropriate
-#     m.limits["jes"] = (0.5, 1.5)  # Adjust as appropriate
-#     m.errordef = Minuit.LIKELIHOOD
-#     m.migrad()
-#     m.hesse()
-
-#     return m.values["mu"], m.errors["mu"]
 
 
-def likelihood_fit_mu_binned(score, label, weights, mu_init=1.0):
 
-    bins = np.linspace(0, 1, 101)
-    # Masks
-    signal_mask = label == 1
-    background_mask = label == 0
-    # Binned histograms
-    S_hist, _ = np.histogram(
-        score[signal_mask], bins=bins, weights=weights[signal_mask]
-    )
 
-    B_hist, _ = np.histogram(
-        score[background_mask], bins=bins, weights=weights[background_mask]
-    )
-    N_obs, _ = np.histogram(score, bins=bins, weights=weights)
 
-    # Binned negative log-likelihood function
-    def neg_ll(mu):
-        pred = mu * S_hist + B_hist
-        pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-        return -np.sum(N_obs * np.log(pred) - pred)
 
-    # Fit using Minuit
-    m = Minuit(neg_ll, mu=mu_init)
-    m.limits["mu"] = (0, None)
-    m.errordef = Minuit.LIKELIHOOD
-
-    m.migrad()
-    m.hesse()
-
-    mu_fit = m.values["mu"]
-    mu_err = m.errors["mu"]
-
-    plt.figure(figsize=(8, 5))
-    width = bins[1] - bins[0]
-    bin_centers = (bins[:-1] + bins[1:]) / 2
-
-    plt.bar(
-        bin_centers, N_obs, width=width, alpha=0.5, label="Observed", edgecolor="black"
-    )
-    plt.step(bin_centers, B_hist, where="mid", label="Background", color="orange")
-    plt.step(
-        bin_centers,
-        mu_fit * S_hist + B_hist,
-        where="mid",
-        label=f"Signal + Background (mu={mu_fit:.2f})",
-        color="green",
-    )
-
-    plt.xlabel("Score")
-    plt.ylabel("Weighted Events")
-    plt.legend()
-    plt.grid(True)
-    plt.title("Binned Histogram: Observed vs Model Prediction")
-    plt.tight_layout()
-    plt.show()
-    return m.values["mu"], m.errors["mu"]
