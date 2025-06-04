@@ -37,12 +37,11 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
 
     mu, del_mu_stat, del_mu_tot, del_mu_sys = (0, 0, 0, 0)
 
+    # Compute mu with counting method
     if method == "Counting":
-        mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
-        del_mu_stat = (
-            np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
-        )
+        mu, del_mu_stat = counting_mu(score, weight, saved_info)
 
+    # Compute mu with Likelihood method
     elif method == "Likelihood":
         mu, del_mu_stat = likelihood_fit_mu(
             saved_info["beta"] + saved_info["gamma"],
@@ -56,8 +55,10 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
             saved_info["beta"],
             mu,
         )
+
+    # Compute mu with likelihood and tes and jes
     elif method == "Likelihood+Systematics":
-        mu, del_mu_tot = likelihood_fit_mu_tes_jes(
+        mu, del_mu_stat = likelihood_fit_mu_tes_jes(
             saved_info["beta"] + saved_info["gamma"],
             saved_info["tes_fit"],
             saved_info["jes_fit"],
@@ -66,11 +67,15 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
             1.0,
         )
 
+    # Compute mu with binned likelihood
     elif method == "Binned_Likelihood":
         mu, del_mu_stat = likelihood_fit_mu_binned(score, saved_info["label"], weight)
 
+    # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
     del_mu_tot = np.sqrt(del_mu_stat**2 + del_mu_sys**2)
+
+    # Return results
     return {
         "mu_hat": mu,
         "del_mu_stat": del_mu_stat,
@@ -204,6 +209,14 @@ from iminuit import Minuit
 import matplotlib.pyplot as plt
 
 
+def counting_mu(score, weight, saved_info):
+    mu = (np.sum(score * weight) - saved_info["beta"]) / saved_info["gamma"]
+    del_mu_stat = (
+        np.sqrt(saved_info["beta"] + saved_info["gamma"]) / saved_info["gamma"]
+    )
+    return mu, del_mu_stat
+
+
 def neg_ll(mu, n_obs, S, B):
 
     n_pred = mu * S + B
@@ -229,31 +242,68 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     return m.values["mu"], m.errors["mu"]
 
 
+from scipy.interpolate import interp1d
+
+
 def plot_likelihood(n_obs, S, B, mu_hat):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam)
 
-    mu_vals = np.linspace(0, 3, 200)
-    nll_vals = [neg_ll(mu) for mu in mu_vals]
+    mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
+    nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
 
-    # finds the minimum (to plot ΔNLL)
-    nll_min = min(nll_vals)
-    delta_nll = [val - nll_min for val in nll_vals]
+    # Normalize to ΔNLL
+    nll_min = np.min(nll_vals)
+    delta_nll = nll_vals - nll_min
 
+    left_mask = mu_vals < mu_hat
+    right_mask = mu_vals > mu_hat
+
+    try:
+        # Interpolate to find where ΔNLL = 0.5
+        left_interp = interp1d(
+            delta_nll[left_mask],
+            mu_vals[left_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+        right_interp = interp1d(
+            delta_nll[right_mask],
+            mu_vals[right_mask],
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
+
+        mu_lower = float(left_interp(0.5))
+        mu_upper = float(right_interp(0.5))
+        delta_mu = mu_upper - mu_lower
+    except Exception as e:
+        mu_lower = mu_hat
+        mu_upper = mu_hat
+        delta_mu = 0.0
+        print("Interpolation error:", e)
+
+    # Plot
     plt.figure(figsize=(8, 5))
     plt.plot(mu_vals, delta_nll, label=r"$\Delta$NLL", color="blue")
-    plt.axhline(
-        0.5,
-        color="gray",
-        linestyle="--",
-        label=r"1$\sigma$ contour ($\Delta$NLL = 0.5)",
-    )
     plt.axvline(mu_hat, color="red", linestyle="--", label=rf"$\hat\mu = {mu_hat:.3f}$")
+    plt.axvline(
+        mu_lower,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{-1\sigma}} = {mu_lower:.3f}$",
+    )
+    plt.axvline(
+        mu_upper,
+        color="green",
+        linestyle="--",
+        label=rf"$\mu_{{+1\sigma}} = {mu_upper:.3f}$",
+    )
     plt.xlabel(r"$\mu$")
     plt.ylabel(r"$\Delta$ Negative Log-Likelihood")
-    plt.title("Profile Likelihood Curve for $\mu$")
+    plt.title(rf"Profile Likelihood: $\delta\mu$ = {delta_mu:.3f}")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
