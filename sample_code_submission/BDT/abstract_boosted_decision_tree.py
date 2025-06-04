@@ -172,7 +172,7 @@ class AbstractBoostedDecisionTree(ABC):
         plt.ylim([0.0, 1.05])
         plt.xlabel("Background Efficiency")
         plt.ylabel("Signal Efficiency")
-        plt.title(f"ROC curve for {self.name}")
+        plt.title(f"ROC curve for {self.__name}")
         plt.legend(loc="lower right")
         plt.show()
 
@@ -181,7 +181,7 @@ class AbstractBoostedDecisionTree(ABC):
         x = np.linspace(0, 1, num=len(vams))
         significance = np.max(vams)
         plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
-        plt.title(f"BDT Significance for {self.name} ")
+        plt.title(f"BDT Significance for {self.__name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
         plt.legend()
