@@ -205,8 +205,8 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        sig = self.model.significance(self.training_set["labels"], self.training_set["weights"])
-        print("Significance on training set:", sig)
+        #ficance(self.training_set["labels"], self.training_set["weights"])
+        #print("Significance on training set:", sig)
         # self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
