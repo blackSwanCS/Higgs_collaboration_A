@@ -1,5 +1,6 @@
-#%pip install shap
+# %pip install shap
 from sklearn.metrics import accuracy_score
+
 
 def feature_corrilations(data):
     pass
@@ -21,30 +22,32 @@ if module_path not in sys.path:
 
 import sample_code_submission.BDT.boosted_decision_tree as BoostedDecisionTree
 
+
 def minimal_dependent_features(data):
     """
     Uses permutation importance on BoostedDecisionTree to get top 10 important features.
- 
+
     Parameters:
         data (pd.DataFrame): Dataset with 'Label' column.
- 
+
     Returns:
         List[str]: Top 10 most important feature names.
     """
     X = data.drop(columns=["labels", "Weight", "DetailedLabel"], errors="ignore")
     y = data["labels"]
- 
- 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
- 
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
     model = BoostedDecisionTree.get_best_model()
 
-    result = permutation_importance(model, X_test, y_test, n_repeats=10, random_state=42, scoring="roc_auc")
+    result = permutation_importance(
+        model, X_test, y_test, n_repeats=10, random_state=42, scoring="roc_auc"
+    )
 
-    importance_df = pd.DataFrame({
-        "Feature": X_test.columns,
-        "Importance": result.importances_mean
-    }).sort_values(by="Importance", ascending=False)
+    importance_df = pd.DataFrame(
+        {"Feature": X_test.columns, "Importance": result.importances_mean}
+    ).sort_values(by="Importance", ascending=False)
 
     return importance_df["Feature"].head(10).tolist()
-
