@@ -80,5 +80,5 @@ params = {
         "subsample": np.float64(0.9375),
     }
 
-curve(params)
+#curve(params)
 learning_curve(params_best,train_data, train_labels, train_weights, val_data, val_labels, val_weights)

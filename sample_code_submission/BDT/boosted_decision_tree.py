@@ -1,4 +1,4 @@
-import BDT.xgb_boosted_decision_tree
+import xgb_boosted_decision_tree
 import numpy as np
 
 
@@ -7,7 +7,7 @@ def get_best_model():
     Returns the best pre-trained Boosted Decision Tree model we found so far
     """
 
-    model = BDT.xgb_boosted_decision_tree.XGBBoostedDecisionTree()
+    model = xgb_boosted_decision_tree.XGBBoostedDecisionTree()
     model.load_model()
     return model
     """

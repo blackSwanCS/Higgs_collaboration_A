@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from BDT.constants import *
+from constants import *
 
 # Curves
 import matplotlib.pyplot as plt
@@ -180,7 +180,7 @@ class AbstractBoostedDecisionTree(ABC):
         vams = self.vamsasimov(val_labels, test_weights)
         x = np.linspace(0, 1, num=len(vams))
         significance = self.significance(val_labels)
-        plt.plot(x, vams,'+', label="(Z = {:.2f})".format(significance))
+        plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
         plt.title(f"BDT Significance for {self.__name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
