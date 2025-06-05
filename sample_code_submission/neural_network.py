@@ -17,7 +17,7 @@ class NeuralNetwork:
         self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
         for k in range(self.layers): 
             self.model.add(Dense(100, activation="relu"))
-            self.model.add(Dense(1, activation="sigmoid"))
+        self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
