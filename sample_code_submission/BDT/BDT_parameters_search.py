@@ -11,7 +11,6 @@ import sys
 
 
 def find_and_add_module_path(filename):
-    """Ajoute à sys.path le dossier contenant filename, en remontant jusqu'à 3 niveaux."""
     cur = os.path.abspath(os.path.dirname(__file__))
     for _ in range(3):
         candidate = os.path.join(cur, filename)
