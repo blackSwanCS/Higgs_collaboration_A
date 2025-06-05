@@ -261,10 +261,8 @@ def counting_mu(score, weight, saved_info):
 def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
-        systematic_term = ( (mu - 1)/0.03 )**2  # Example systematic uncertainty term
-        lam += systematic_term  # Add systematic uncertainty to the prediction
         lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
-        return -(n_obs * np.log(lam) - lam) 
+        return -(n_obs * np.log(lam) - lam)  + 0.5*( (mu - 1)/0.03 )**2 
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -309,8 +307,10 @@ def likelihood_fit_mu_tes_jes(
 
     def neg_ll(mu, tes, jes):
         # Get beta and gamma from the fit functions
-        beta = tes_fit(tes)
-        gamma = jes_fit(jes)
+        beta_tes, gamma_tes  = tes_fit(tes)
+        beta_jes, gamma_jes = jes_fit(jes)
+        beta= beta_tes + beta_jes
+        gamma = gamma_tes + gamma_jes
         lam = mu * gamma + beta
         
         lam = np.clip(lam, 1e-10, None)
@@ -327,16 +327,15 @@ def likelihood_fit_mu_tes_jes(
     return m.values["mu"], m.errors["mu"]
 
 
+
 #################################################
 #                    PLOTS                      #
 #################################################
 def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
     def neg_ll(mu):
         lam = mu * S + B
-        systematic_term = ( (mu - 1)/0.03 )**2  # Example systematic uncertainty term
-        lam += systematic_term  # Add systematic uncertainty to the prediction
         lam = np.clip(lam, 1e-10, None)
-        return -(n_obs * np.log(lam) - lam)
+        return -(n_obs * np.log(lam) - lam) + 0.5*( (mu - 1)/0.03 )**2
 
     mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
     nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
@@ -379,7 +378,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         color="red",
         linestyle="--",
         label=rf"Single Binned $\hat\mu = {mu_hat:.3f}$",
-    )
+)
     plt.axvline(
         mu_lower,
         color="green",
