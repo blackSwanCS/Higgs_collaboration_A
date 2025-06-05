@@ -140,7 +140,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     #    from systematic_analysis import jes_fitter
 
     MAX = sorted(set(score))[-3]
-    BINS = np.linspace(INF, MAX, 20)
+    BINS = np.linspace(INF, MAX, NUMBER_OF_BINS)
     best_threshold = 0
 
     # Chose an arbitrary cutoff
