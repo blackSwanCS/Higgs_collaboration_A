@@ -189,6 +189,9 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
             score2 = score.flatten() > t
             score2 = score2.astype(int)
 
+            if len(score2) == 0 :
+                continue 
+
             label = holdout_set["labels"]
 
             gamma = np.sum(holdout_set["weights"] * score2 * label)
@@ -272,7 +275,7 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
-        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 0.03) ** 2
+        return -(n_obs * np.log(lam) - lam)  + 0.5*( (mu - 1)/1.03 )**2 
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -288,8 +291,7 @@ def likelihood_fit_mu_binned(
     N_obs,
     gamma_hist,
     beta_hist,
-    mu_init=1.0,
-):
+    mu_init=1.0,):
 
     # Binned negative log-likelihood function
     def neg_ll(mu):
@@ -346,7 +348,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 0.03) ** 2
 
-    mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
+    mu_vals = np.linspace(0.5, 2.5, 400)
     nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
 
     # Normalize to ΔNLL
@@ -417,7 +419,7 @@ def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True)
         pred = np.clip(pred, 1e-10, None)
         return -np.sum(N_obs * np.log(pred) - pred)
 
-    mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
+    mu_vals = np.linspace(0.5, 2.5, 400)
     nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
     delta_nll = nll_vals - np.min(nll_vals)
 
