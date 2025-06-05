@@ -1,5 +1,5 @@
 from boosted_decision_tree import get_best_model
-from donnee import get_data
+from get_data import get_data
 from xgb_boosted_decision_tree import XGBBoostedDecisionTree
 import numpy as np
 import matplotlib.pyplot as plt
