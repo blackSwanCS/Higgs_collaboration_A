@@ -12,7 +12,25 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from BDT.constants import *
+import os
+import sys
+
+
+def find_and_add_module_path(filename):
+    """Ajoute à sys.path le dossier contenant filename, en remontant jusqu'à 3 niveaux."""
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("constants.py")
+
+from constants import *
 
 # Curves
 import matplotlib.pyplot as plt
