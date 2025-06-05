@@ -12,19 +12,21 @@ class NeuralNetwork:
     """
     def __init__(self, train_data):
         self.model = Sequential()
-        self.layers = 1
+        self.layers = 2
+        self.width = 100
+        self.activation = "relu"
         n_dim = train_data.shape[1]
-        self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
-        for k in range(self.layers): 
-            self.model.add(Dense(100, activation="relu"))
+        self.model.add(Dense(self.width, input_dim=n_dim, activation=self.activation))
+        for k in range(self.layers-1): 
+            self.model.add(Dense(self.width, activation=self.activation))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
         )
         self.scaler = StandardScaler()
-        self.batchsize = 50
-        self.epochs = 5
+        self.batchsize = 16
+        self.epochs = 15
 
     def fit(self, train_data, y_train, weights_train=None):
         # Fit the scaler on the training data

@@ -1,8 +1,12 @@
 A l'aide des programmes d'optimisations :
 
 - batchsize : 16
-- epoch : 50
-- activation function : 
+- epoch : 15
+- activation function : relu
+- number of layers : 10
+- nombre de neurones : 
 
 On ne change pas l'optimizer. 
 
+
+Increase the number of data. 
