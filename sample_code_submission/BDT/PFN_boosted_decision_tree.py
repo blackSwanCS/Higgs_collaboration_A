@@ -2,16 +2,19 @@ from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
 from tabpfn import TabPFNClassifier
 from get_data import get_data
 from time import time
+import torch
 
 
 class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
     """
-    This class implements a boosted decision tree model using PFN's implementation.
+    PFN model optimisé pour GPU.
     """
 
     def __init__(self):
         super().__init__("PFNBoostedDecisionTree")
-        self._model = TabPFNClassifier(ignore_pretraining_limits=True)
+        # Vérifie si CUDA est dispo, sinon fallback CPU
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self._model = TabPFNClassifier(ignore_pretraining_limits=True, device=device)
 
     def fit(self, train_data, labels, weights=None):
         if super().fit(train_data, labels, weights):
@@ -19,7 +22,6 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
         self._model.fit(
             self._scaler.transform(train_data),
             self._labels,
-            #            sample_weight=self._weights,
         )
 
     def predict(self, test_data, labels=None, weights=None):
@@ -44,13 +46,13 @@ if __name__ == "__main__":
         get_data()
     )
 
-    train_data = train_data[:4000]
-    train_labels = train_labels[:4000]
-    train_weights = train_weights[:4000]
-
-    val_data = val_data[:2000]
-    val_labels = val_labels[:2000]
-    val_weights = val_weights[:2000]
+    # Utilise tout le dataset pour l'entraînement (sauf si test rapide)
+    # train_data = train_data[:4000]
+    # train_labels = train_labels[:4000]
+    # train_weights = train_weights[:4000]
+    # val_data = val_data[:2000]
+    # val_labels = val_labels[:2000]
+    # val_weights = val_weights[:2000]
 
     model = PFN_boosted_decision_tree()
     t0 = time()

@@ -16,9 +16,9 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
     def __init__(self, params=None):
         super().__init__("XGBBoostedDecisionTree")
         if params is None:
-            self._model = XGBClassifier(n_jobs=THREADS_NUMBER)
+            self._model = XGBClassifier(n_jobs=THREADS_NUMBER, device="cuda")
         else:
-            self._model = XGBClassifier(**params, n_jobs=THREADS_NUMBER)
+            self._model = XGBClassifier(**params, n_jobs=THREADS_NUMBER, device="cuda")
 
     def fit(self, train_data, labels, weights=None):
         if super().fit(train_data, labels, weights):
