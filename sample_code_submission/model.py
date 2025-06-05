@@ -193,7 +193,7 @@ class Model:
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
 
-        # self.model.save()
+        self.model.save()
 
         self.holdout_set = self.systematics(self.holdout_set)
 
@@ -212,7 +212,6 @@ class Model:
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
-        """
         print(
             "Significance",
             self.model.significance(
@@ -223,7 +222,6 @@ class Model:
             "AUC",
             self.model.auc(self.holdout_set["labels"], self.holdout_set["weights"]),
         )
-        """
 
         self.valid_set = self.systematics(self.valid_set)
 
