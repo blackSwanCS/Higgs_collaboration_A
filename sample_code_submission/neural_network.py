@@ -2,6 +2,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import matplotlib.pyplot as plt
 
 class NeuralNetwork:
     """
@@ -88,4 +89,8 @@ class NeuralNetwork:
             y_score=self.__predicted_data,
             sample_weight= self.__test_weights,
         )
+        
+        plt.plot(np.linspace(0, 1.0, 100), vamsasimov_xgb, label='AMS Significance')
+        plt.xlabel('Score')
+        plt.ylabel('Significance')
         return np.max(vamsasimov_xgb)

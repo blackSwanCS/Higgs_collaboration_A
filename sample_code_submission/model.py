@@ -205,9 +205,9 @@ class Model:
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
-        sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
-
-        print("Holdout Significance: ", sig)
+        holdout_sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
+        self.holdout_sig = holdout_sig
+        print("Holdout Significance: ", holdout_sig)
         self.valid_set = self.systematics(self.valid_set)
 
         valid_score = self.model.predict(self.valid_set["data"])
@@ -254,6 +254,7 @@ class Model:
             weights=self.valid_set["weights"],
             plot_label="valid_set" + self.name,
         )
+        return holdout_sig
 
     def predict(self, test_set):
         """
