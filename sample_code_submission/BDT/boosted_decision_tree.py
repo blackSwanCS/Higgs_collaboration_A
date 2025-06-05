@@ -15,16 +15,16 @@ def find_and_add_module_path(filename):
         cur = os.path.dirname(cur)
 
 
-find_and_add_module_path("xgb_boosted_decision_tree.py")
+find_and_add_module_path("XGB_boosted_decision_tree.py")
 
-import xgb_boosted_decision_tree
+import XGB_boosted_decision_tree
 
 
 def get_best_model():
     """
     Returns the best pre-trained Boosted Decision Tree model we found so far
     """
-    model = xgb_boosted_decision_tree.XGBBoostedDecisionTree()
+    model = XGB_boosted_decision_tree.XGBBoostedDecisionTree()
     model.load_model()
     return model
 

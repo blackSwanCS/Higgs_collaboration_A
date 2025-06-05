@@ -1,10 +1,26 @@
 from boosted_decision_tree import get_best_model
 from boosted_decision_tree import get_best_model
 from get_data import get_data
-from xgb_boosted_decision_tree import XGBBoostedDecisionTree
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+import sys
+import os
+
+def find_and_add_module_path(filename):
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("XGB_boosted_decision_tree.py")
+
+from XGB_boosted_decision_tree import XGBBoostedDecisionTree
 
 train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
 

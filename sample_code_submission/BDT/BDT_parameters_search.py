@@ -21,9 +21,9 @@ def find_and_add_module_path(filename):
         cur = os.path.dirname(cur)
 
 
-find_and_add_module_path("xgb_boosted_decision_tree.py")
+find_and_add_module_path("XGB_boosted_decision_tree.py")
 
-from xgb_boosted_decision_tree import XGBBoostedDecisionTree
+from XGB_boosted_decision_tree import XGBBoostedDecisionTree
 
 
 def evaluate_significance(
