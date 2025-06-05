@@ -7,6 +7,7 @@ NN = True
 
 from statistical_analysis import calculate_saved_info, compute_mu
 import numpy as np
+from sklearn.metrics import roc_auc_score
 
 
 class Model:
@@ -56,13 +57,13 @@ class Model:
             None
         """
 
-        indices = np.arange(150000)
+        indices = np.arange(300000)
 
         np.random.shuffle(indices)
 
-        train_indices = indices[:50000]
-        holdout_indices = indices[50000:100000]
-        valid_indices = indices[100000:]
+        train_indices = indices[:100000]
+        holdout_indices = indices[100000:200000]
+        valid_indices = indices[200000:]
 
         training_df = get_train_set(selected_indices=train_indices)
 
@@ -77,9 +78,6 @@ class Model:
 
         self.systematics = systematics
 
-        print("Training Data: ", self.training_set["data"].shape)
-        print("Training Labels: ", self.training_set["labels"].shape)
-        print("Training Weights: ", self.training_set["weights"].shape)
         print(
             "sum_signal_weights: ",
             self.training_set["weights"][self.training_set["labels"] == 1].sum(),
@@ -124,9 +122,6 @@ class Model:
         del holdout_df
 
         print()
-        print("Holdout Data: ", self.holdout_set["data"].shape)
-        print("Holdout Labels: ", self.holdout_set["labels"].shape)
-        print("Holdout Weights: ", self.holdout_set["weights"].shape)
         print(
             "sum_signal_weights: ",
             self.holdout_set["weights"][self.holdout_set["labels"] == 1].sum(),
@@ -206,14 +201,15 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        self.sig = self.model.significance_2(self.holdout_set["labels"], self.holdout_set["weights"])
-        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
+        holdout_sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
+        self.sig = holdout_sig
+        print("Holdout Significance: ", holdout_sig)
         self.valid_set = self.systematics(self.valid_set)
 
         valid_score = self.model.predict(self.valid_set["data"])
@@ -254,12 +250,19 @@ class Model:
             "score",
         )
 
+        self.auc = roc_auc_score(
+            y_true=self.valid_set["labels"],
+            y_score=valid_score,
+            sample_weight=self.valid_set["weights"],
+        )
+
         roc_curve_wrapper(
             score=valid_score,
             labels=self.valid_set["labels"],
             weights=self.valid_set["weights"],
             plot_label="valid_set" + self.name,
         )
+        return holdout_sig
 
     def predict(self, test_set):
         """
