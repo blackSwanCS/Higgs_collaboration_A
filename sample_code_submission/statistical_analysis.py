@@ -33,7 +33,8 @@ Task 2 : Systematic Uncertainty
 #################################################
 INF = 0
 MAX = 1  # To redefine in the code
-BINS = np.linspace(INF, MAX, 20)
+NUMBER_OF_BINS = 30
+BINS = np.linspace(INF, MAX, NUMBER_OF_BINS)
 
 
 def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
