@@ -1,11 +1,32 @@
 import csv
 import numpy as np
 from HiggsML.datasets import download_dataset
-from sample_code_submission.BDT.XGB_boosted_decision_tree import XGBBoostedDecisionTree
+from sample_code_submission.BDT.xgb_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
-from get_data import get_data
+
+
+def get_data():
+    data = download_dataset("blackSwan_data")
+    data.load_train_set()
+    training_set = data.get_train_set()
+    feature_keys = [
+        k
+        for k in training_set.keys()
+        if k not in ("labels", "weights", "detailed_labels")
+    ]
+    X = np.column_stack([training_set[k] for k in feature_keys])
+    y = training_set["labels"]
+    w = training_set["weights"]
+
+    n = len(y)
+    split = int(n * 0.8)
+    train_data, val_data = X[:split], X[split:]
+    train_labels, val_labels = y[:split], y[split:]
+    train_weights, val_weights = w[:split], w[split:]
+
+    return train_data, train_labels, train_weights, val_data, val_labels, val_weights
 
 
 def evaluate_significance(
@@ -18,8 +39,8 @@ def evaluate_significance(
     print(f"Fitting time: {end_time - start_time:.2f} seconds")
     model.predict(val_data, labels=val_labels, weights=val_weights)
     significance = model.significance()
-    auc = model.auc()
-    return significance, auc
+    model.save()
+    return significance
 
 
 if __name__ == "__main__":
@@ -29,27 +50,18 @@ if __name__ == "__main__":
     )
 
     # Define parameter grid (edit these lists as needed)
-    n_estimators_list = np.linspace(500, 550, 1, dtype=int)
+    n_estimators_list = np.linspace(100, 510, 10, dtype=int)
     max_depth_list = np.arange(2, 10, 1)
-    eta_list = np.linspace(0.01, 0.2, 1)
-    subsample_list = np.linspace(0.75, 1.0, 1)
+    eta_list = np.linspace(0.01, 0.2, 10)
+    subsample_list = np.linspace(0.5, 1.0, 10)
 
     param_grid = list(
         product(n_estimators_list, max_depth_list, eta_list, subsample_list)
     )
 
     best_significance = -np.inf
-    auc_best_significance = 0.5
     best_params = None
-    excel = np.zeros(
-        (
-            len(n_estimators_list)
-            * len(max_depth_list)
-            * len(eta_list)
-            * len(subsample_list),
-            6,
-        )
-    )
+    excel = np.zeros((len(n_estimators_list) * len(max_depth_list), 6))
     i = 0
     for n_estimators, max_depth, eta, subsample in tqdm(param_grid):
         params = {
@@ -62,7 +74,16 @@ if __name__ == "__main__":
             "eval_metric": "logloss",
         }
         #        print(f"Testing params: {params}")
-        significance, auc = evaluate_significance(
+        params = {
+            "n_estimators": np.int64(215),
+            "max_depth": np.int64(5),
+            "max_leaves": np.int64(0),
+            "objective": "binary:logistic",
+            "use_label_encoder": False,
+            "eval_metric": "logloss",
+        }
+
+        significance = evaluate_significance(
             params,
             train_data,
             train_labels,
@@ -71,18 +92,17 @@ if __name__ == "__main__":
             val_labels,
             val_weights,
         )
-        t = time()
-        excel[i] = [n_estimators, max_depth, eta, subsample, t, significance]
-        i += 1
+
         #        print(f"Significance: {significance:.4f}")
         if significance > best_significance:
-            best_significance, auc_best_significance = significance, auc
+            best_significance = significance
             best_params = params
+        break
 
     print("\nBest parameters:")
     print(best_params)
     print(f"Best significance: {best_significance:.4f}")
-    csv_file_path = "C:/Users/julie/Documents/CS/Cours/Black Swans/EI/donnees_500_550"
+    csv_file_path = "C:/Users/Bibi/Documents/EI/donnees_excel.csv"
     with open(csv_file_path, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerows(excel)
