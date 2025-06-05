@@ -1,7 +1,7 @@
 import csv
 import numpy as np
 from HiggsML.datasets import download_dataset
-from xgb_boosted_decision_tree import XGBBoostedDecisionTree
+from sample_code_submission.BDT.XGB_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
