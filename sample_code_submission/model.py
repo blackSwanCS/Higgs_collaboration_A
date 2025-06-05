@@ -77,9 +77,6 @@ class Model:
 
         self.systematics = systematics
 
-        print("Training Data: ", self.training_set["data"].shape)
-        print("Training Labels: ", self.training_set["labels"].shape)
-        print("Training Weights: ", self.training_set["weights"].shape)
         print(
             "sum_signal_weights: ",
             self.training_set["weights"][self.training_set["labels"] == 1].sum(),
@@ -124,9 +121,6 @@ class Model:
         del holdout_df
 
         print()
-        print("Holdout Data: ", self.holdout_set["data"].shape)
-        print("Holdout Labels: ", self.holdout_set["labels"].shape)
-        print("Holdout Weights: ", self.holdout_set["weights"].shape)
         print(
             "sum_signal_weights: ",
             self.holdout_set["weights"][self.holdout_set["labels"] == 1].sum(),
@@ -205,14 +199,15 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        #self.model.auc(self.training_set["labels"], self.training_set["weights"])
-        self.model.significance(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
+        sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
+
+        print("Holdout Significance: ", sig)
         self.valid_set = self.systematics(self.valid_set)
 
         valid_score = self.model.predict(self.valid_set["data"])
