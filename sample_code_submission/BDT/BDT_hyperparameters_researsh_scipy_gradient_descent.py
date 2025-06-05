@@ -3,6 +3,7 @@ from HiggsML.datasets import download_dataset
 from boosted_decision_tree import BoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
+from scipy.optimize import minimize
 
 def get_data():
     data = download_dataset("blackSwan_data")
@@ -34,49 +35,49 @@ def evaluate_auc(params, train_data, train_labels, train_weights, val_data, val_
     model.predict(val_data, labels=val_labels, weights=val_weights) 
     return(model.auc()) 
 
+def loss(input):
+            params = {
+                "n_estimators": input[0],
+                "max_depth": input[1],
+                "eta":input[2],
+                "subsample":input[3],
+                "max_leaves": 0,
+                "objective": "binary:logistic",
+                "eval_metric": "logloss"
+            }
+            model = BoostedDecisionTree(params)
+            model.fit(train_data, train_labels, train_weights)
+            model.predict(val_data, labels=val_labels, weights=val_weights) 
+            model.auc() 
+            return 1200/model.significance() - np.log(model.auc())
+   
+
+
 if __name__ == "__main__":
     # Load data once
     train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
 
-    # Define parameter grid (edit these lists as needed)
-    n_estimators_list = np.linspace(100, 200, 10, dtype=int)
-    max_depth_list = np.arange(2, 10, 1)
-
-    param_grid = list(product(
-        n_estimators_list,
-        max_depth_list,
-    ))
-
-    best_significance = -np.inf
-    best_params = None
-
-    gradient = np.inf
     eps = 0.01
-    #for n_estimators, max_depth in tqdm(param_grid):
-    while np.norm(gradient) > eps:
-        params = {
-                "n_estimators": 191,
-                "max_depth": 5,
-                "eta":0.3,
-                "subsample":1,
-                "max_leaves": 0,
-                "objective": "binary:logistic",
-                "use_label_encoder": False,
-                "eval_metric": "logloss"
-        }
-#        print(f"Testing params: {params}")
-        significance = evaluate_significance(
-            params,
-            train_data, train_labels, train_weights,
-            val_data, val_labels, val_weights
-        )
-#        print(f"Significance: {significance:.4f}")
-        auc = evaluate_auc(
-            params,
-            train_data, train_labels, train_weights,
-            val_data, val_labels, val_weights
-        )
-        
-    print(params)
-    print(f"AUC : {auc}")
-    print(f"Best significance: {best_significance:.4f}")
+    alpha = 1
+    
+    names = ["n_estimators","max_depth","eta","subsample"]
+    pas = [1,1,0.01,0.01]
+    input = [450,7,0.15525,0.9375]
+    min_input = [4,1,0.0,0.0]
+    max_input = [np.inf,np.inf,1.0,1.0]
+    approx = [0,0,2,2]
+    
+    constraints = [
+    {'type': 'ineq', 'fun': lambda input: input[0] - 2},  # x1 >= 3
+    {'type': 'ineq', 'fun': lambda input: input[1] - 2},  # x2 >= 3
+    {'type': 'ineq', 'fun': lambda input: input[2]},      # y1 >= 0
+    {'type': 'ineq', 'fun': lambda input: 1 - input[2]},  # y1 <= 1
+    {'type': 'ineq', 'fun': lambda input: input[3]},      # y2 >= 0
+    {'type': 'ineq', 'fun': lambda input: 1 - input[3]}   # y2 <= 1
+]   
+    # Appeler la fonction de minimisation
+    result = minimize(loss, input, constraints=constraints)
+
+    # Afficher les résultats
+    print("Paramètres optimaux :", result.x)
+    print("Valeur minimale de la fonction :", result.fun)

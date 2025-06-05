@@ -3,7 +3,8 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import multiprocessing
 from enum import Enum, auto
-
+from sklearn.metrics import roc_auc_score
+    
 
 class BDT_Status(Enum):
     NOT_FITTED = auto()
@@ -20,7 +21,7 @@ class BoostedDecisionTree:
         # Initialize the model and scaler
         if params is None:
             params = {
-                "n_estimators": 210,
+                "n_estimators": 191,
                 "max_depth": 5,
                 "max_leaves": 0,
                 "objective": "binary:logistic",
@@ -40,7 +41,7 @@ class BoostedDecisionTree:
         self.__labels = labels
         self.__weights = weights
 
-        self.__model.fit(self.__train_data, self.__labels, self.__weights)
+        self.__model.fit(self.__train_data, self.__labels, sample_weight = self.__weights)
 
         self.__status = BDT_Status.FITTED
     
@@ -74,7 +75,7 @@ class BoostedDecisionTree:
             if np.isscalar(s_in):
                 return float(ams)
             else:
-                return  ams
+                return ams
         def __significance_vscore(y_true, y_score, sample_weight=None):
             if sample_weight is None:
                 sample_weight = np.full(len(y_true), 1.)
@@ -94,3 +95,6 @@ class BoostedDecisionTree:
         )
         return np.max(vamsasimov_xgb)
 
+    def auc(self):
+        return roc_auc_score(y_true=self.__test_labels, y_score=self.__predicted_data,sample_weight=self.__test_weights)
+    
