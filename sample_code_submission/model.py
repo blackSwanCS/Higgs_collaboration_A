@@ -203,12 +203,12 @@ class Model:
         # Compute  Results
         train_score = self.model.predict(self.training_set["data"])
         train_results = compute_mu(
-            train_score, self.training_set["weights"], self.training_set["labels"], self.saved_info
+            train_score, self.training_set["weights"], self.saved_info
         )
 
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
-            holdout_score, self.holdout_set["weights"], self.holdout_set["labels"], self.saved_info
+            holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
         """
@@ -229,7 +229,7 @@ class Model:
         valid_score = self.model.predict(self.valid_set["data"])
 
         valid_results = compute_mu(
-            valid_score, self.valid_set["weights"], self.valid_set["labels"], self.saved_info
+            valid_score, self.valid_set["weights"], self.saved_info
         )
 
         print("Train Results: ")
@@ -292,7 +292,9 @@ class Model:
 
         predictions = self.model.predict(test_data)
 
-        result_mu_cal = compute_mu(predictions, test_weights,test_set["labels"], self.saved_info)
+        print(test_set)
+
+        result_mu_cal = compute_mu(predictions, test_weights, self.saved_info)
 
         print("Test Results: ", result_mu_cal)
 
