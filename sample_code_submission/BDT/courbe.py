@@ -1,5 +1,6 @@
-from boosted_decision_tree import get_best_model
-from donnee import get_data
+from BDT.boosted_decision_tree import get_best_model
+from get_data import get_data
+
 
 train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
 model = get_best_model()
