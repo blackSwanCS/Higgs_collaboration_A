@@ -23,17 +23,17 @@ def curve(params=None):
         model = get_best_model()
         model.predict(val_data, labels=val_labels, weights=val_weights)
         model.roc_curve()
-        model.significance_curve()
+        model.significance_curve(val_labels)
     else :
         model=XGBBoostedDecisionTree(params)
         model.fit(train_data,train_labels,train_weights)
         model.predict(val_data, labels=val_labels, weights=val_weights)
         model.roc_curve()
-        model.significance_curve()
+        model.significance_curve(val_labels)
 
 
 def learning_curve(params,train_data, train_labels, train_weights, val_data, val_labels, val_weights):
-        train_sizes=[0.01,0.05,0.1,0.2,0.5,0.75,1]
+        train_sizes=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
         ntrains=[]
         train_aucs=[]
         times=[]
@@ -63,13 +63,22 @@ def learning_curve(params,train_data, train_labels, train_weights, val_data, val
 
         ax2 = ax1.twinx()
         ax2.plot(ntrains, times, 'r+', label="Time")
-        ax2.set_ylabel("Time", color='r')
+        ax2.set_ylabel("Time (s)", color='r')
         
-
-
-        fig.tight_layout()  
         plt.title("Learning curve")
         plt.show()
         
 
+params = {
+        "n_estimators": np.int64(450),
+        "max_depth": np.int64(7),
+        "max_leaves": np.int64(0),
+        "objective": "binary:logistic",
+        "use_label_encoder": False,
+        "eval_metric": "logloss",
+        "eta": np.float64(0.15525),
+        "subsample": np.float64(0.9375),
+    }
+
+curve(params)
 learning_curve(params_best,train_data, train_labels, train_weights, val_data, val_labels, val_weights)

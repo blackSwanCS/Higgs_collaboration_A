@@ -71,4 +71,4 @@ def test(n_estimator, max_depth, eta, subsample):
     print(f"Significance: {significance:.4f},AUC : {auc}")
 
 
-test(450, 8, 0.1525, 0.875)
+test(450, 7, 0.15525, 0.9375)

@@ -107,7 +107,7 @@ class AbstractBoostedDecisionTree(ABC):
             b_hist, bin_edges = np.histogram(
                 y_score[y_true == 0], bins=bins, weights=sample_weight[y_true == 0]
             )
-            print(s_hist, b_hist)
+            
             s_cumul = np.cumsum(s_hist[::-1])[::-1]
             b_cumul = np.cumsum(b_hist[::-1])[::-1]
             significance = amsasimov(s_cumul, b_cumul)
@@ -159,7 +159,7 @@ class AbstractBoostedDecisionTree(ABC):
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-        auc_test = self.auc(test_labels, test_weights)
+        auc_test = self.auc()
         plt.plot(
             fpr_xgb,
             tpr_xgb,
@@ -176,11 +176,11 @@ class AbstractBoostedDecisionTree(ABC):
         plt.legend(loc="lower right")
         plt.show()
 
-    def significance_curve(self, test_labels=None, test_weights=None):
-        vams = self.vamsasimov(test_labels, test_weights)
+    def significance_curve(self, val_labels=None, test_weights=None):
+        vams = self.vamsasimov(val_labels, test_weights)
         x = np.linspace(0, 1, num=len(vams))
-        significance = np.max(vams)
-        plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
+        significance = self.significance(val_labels)
+        plt.plot(x, vams,'+', label="(Z = {:.2f})".format(significance))
         plt.title(f"BDT Significance for {self.__name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
