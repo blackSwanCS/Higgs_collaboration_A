@@ -156,6 +156,7 @@ class Model:
             print(f"model_type {model_type} not found")
             raise ValueError(f"model_type {model_type} not found")
         self.name = model_type
+        self.sig = 0
 
         print(f" Model is { self.name}")
 
@@ -205,7 +206,7 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-        self.model.significance(self.training_set["labels"], self.training_set["weights"])
+        self.sig = self.model.significance(self.training_set["labels"], self.training_set["weights"])
         #self.model.auc(self.training_set["labels"], self.training_set["weights"])
 
         holdout_score = self.model.predict(self.holdout_set["data"])

@@ -93,7 +93,8 @@ def optimization(train_data):
         ingestion.model.model.width = int(L_width[k])
         print(ingestion.model.model.width)
         ingestion.fit_submission()
-        sig1 = ingestion.model.model.significance(test_labels=ingestion.model.training_set["labels"],test_weights=ingestion.model.training_set["weights"])
+        sig1 = ingestion.model.model.significance()
+        print(sig1)
         #visualisation des données :
         S.append(sig1)
         E.append(int(L_width[k]))
