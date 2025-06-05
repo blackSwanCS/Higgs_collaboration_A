@@ -2,10 +2,10 @@
 from xgboost import XGBClassifier
 
 # constants
-from BDT.constants import *
+from constants import *
 
 # Objects
-from BDT.abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
 
 
 class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
@@ -33,9 +33,7 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
 
     def predict_full_output(self, test_data, labels=None, weights=None):
         super().predict_full_output(test_data, labels, weights)
-        temp = self._model.predict_proba(self._scaler.transform(test_data))
-        self._predicted_data = temp[:, 1]
-        return temp
+        return self._model.predict_proba(self._scaler.transform(test_data))
 
     def load_model(self):
         super().load_model()
