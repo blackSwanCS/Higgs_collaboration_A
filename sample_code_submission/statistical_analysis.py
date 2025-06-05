@@ -151,17 +151,6 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         best_idx = np.argmin(del_mu)
         best_threshold = threshold[best_idx]
 
-        # Uncomment to plot delta_mu
-        # plt.plot(threshold, del_mu, label='del_mu')
-        # plt.plot(threshold, mu_list, label='mu')
-        # plt.axvline(best_threshold, color='green', linestyle='--', label=f'Best threshold = {best_threshold:.3f}')
-        # plt.xlabel("Threshold")
-        # plt.ylabel("Del_MU")
-        # plt.grid()
-        # plt.title("Del_mu and Mu vs Threshold")
-        # plt.legend()
-        # plt.show()
-
     elif method == "AMS":
         threshold = np.linspace(0.01, 0.99, 100)
         ams = [0] * 100
@@ -359,25 +348,28 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         print("Interpolation error:", e)
 
     # Plot
-    plt.plot(mu_vals, delta_nll, label=r"Unbinned $\Delta$NLL", color="blue")
+    plt.plot(mu_vals, delta_nll, label=r"Single Binned $\Delta$NLL", color="blue")
     plt.axvline(
-        mu_hat, color="red", linestyle="--", label=rf"Unbinned $\hat\mu = {mu_hat:.3f}$"
+        mu_hat,
+        color="red",
+        linestyle="--",
+        label=rf"Single Binned $\hat\mu = {mu_hat:.3f}$",
     )
     plt.axvline(
         mu_lower,
         color="green",
         linestyle="--",
-        label=rf"Unbinned $\mu_{{-1\sigma}} = {mu_lower:.3f}$",
+        label=rf"Single Binned $\mu_{{-1\sigma}} = {mu_lower:.3f}$",
     )
     plt.axvline(
         mu_upper,
         color="green",
         linestyle="--",
-        label=rf"Unbinned $\mu_{{+1\sigma}} = {mu_upper:.3f}$",
+        label=rf"Single Binned $\mu_{{+1\sigma}} = {mu_upper:.3f}$",
     )
     plt.xlabel(r"$\mu$")
     plt.ylabel(r"$\Delta$ Negative Log-Likelihood")
-    plt.title(rf"Unbinned Profile Likelihood: $\delta\mu$ = {delta_mu:.3f}")
+    plt.title(rf"Single Binned Profile Likelihood: $\delta\mu$ = {delta_mu:.3f}")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
