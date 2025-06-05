@@ -72,7 +72,7 @@ with open(random_settings_file, "w") as f:
     json.dump(test_settings, f)
 
 def graphique(S, E):
-    plt.plot(S, E, marker='o', linestyle='-', color='b')
+    plt.plot(E, S, marker='o', linestyle='-', color='b')
     plt.title('Significance en fonction de width')
     plt.ylabel('significance')
     plt.xlabel('width')
@@ -81,7 +81,7 @@ def graphique(S, E):
     plt.show()
 
 def optimization(train_data): 
-    L_width = np.linspace(10, 10000, 15)
+    L_width = np.linspace(10, 10000, 8)
     sigmax = 0
     width_max = 1
     S = []

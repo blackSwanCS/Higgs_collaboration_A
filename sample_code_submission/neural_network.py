@@ -11,13 +11,14 @@ class NeuralNetwork:
 
     """
 
-    def __init__(self, train_data):
+    def __init__(self, train_data, width = 100):
         self.model = Sequential()
 
         n_dim = train_data.shape[1]
 
-        self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(10, activation="relu"))
+        self.width = width
+        self.model.add(Dense(self.width, input_dim=n_dim, activation="relu"))
+        self.model.add(Dense(self.width, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -27,10 +28,10 @@ class NeuralNetwork:
 
     def fit(self, train_data, y_train, weights_train=None):
         # Fit the scaler on the training data
-        self.scaler.fit_transform(train_data)
-        X_train = self.scaler.transform(train_data)
+        # self.scaler.fit_transform(train_data)
+        X_train = self.scaler.fit_transform(train_data)
         # Fit the model using the transformed data
-        self.model.fit(X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2)
+        self.model.fit(X_train, y_train, sample_weight=weights_train, batch_size = 16, epochs=5, verbose=2)
 
     def predict(self, test_data, labels=None, weights=None):
         test_data = self.scaler.transform(test_data)
