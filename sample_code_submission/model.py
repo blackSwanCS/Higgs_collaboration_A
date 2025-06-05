@@ -7,6 +7,7 @@ NN = True
 
 from statistical_analysis import calculate_saved_info, compute_mu
 import numpy as np
+from sklearn.metrics import roc_auc_score
 
 
 class Model:
@@ -246,6 +247,12 @@ class Model:
             self.valid_set["weights"],
             self.valid_set["detailed_labels"],
             "score",
+        )
+
+        self.auc = roc_auc_score(
+            y_true=self.valid_set["labels"],
+            y_score=valid_score,
+            sample_weight=self.valid_set["weights"],
         )
 
         roc_curve_wrapper(
