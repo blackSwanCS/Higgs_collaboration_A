@@ -33,7 +33,7 @@ Task 2 : Systematic Uncertainty
 #################################################
 BINS = np.linspace(0, 1, 101)
 
-def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
+def compute_mu(score, weight, saved_info, method="Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
