@@ -261,8 +261,10 @@ def counting_mu(score, weight, saved_info):
 def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
-        lam = np.clip(lam, 1e-10, None)
-        return -(n_obs * np.log(lam) - lam)
+        systematic_term = ( (mu - 1)/0.03 )**2  # Example systematic uncertainty term
+        lam += systematic_term  # Add systematic uncertainty to the prediction
+        lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
+        return -(n_obs * np.log(lam) - lam) 
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -310,6 +312,7 @@ def likelihood_fit_mu_tes_jes(
         beta = tes_fit(tes)
         gamma = jes_fit(jes)
         lam = mu * gamma + beta
+        
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam)
 
@@ -330,6 +333,8 @@ def likelihood_fit_mu_tes_jes(
 def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
     def neg_ll(mu):
         lam = mu * S + B
+        systematic_term = ( (mu - 1)/0.03 )**2  # Example systematic uncertainty term
+        lam += systematic_term  # Add systematic uncertainty to the prediction
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam)
 
