@@ -86,7 +86,7 @@ class AbstractBoostedDecisionTree(ABC):
 
     def vamsasimov(self, test_labels=None, test_weights=None):
         """
-        Calculate the tab of significance  for differents treshold of the predicted data using the AMS (A More Sensitive) method.
+        Calculate the tab of significance for different thresholds of the predicted data using the AMS (A More Sensitive) method.
         """
 
         if self.__status != BDT_Status.PREDICTED:
