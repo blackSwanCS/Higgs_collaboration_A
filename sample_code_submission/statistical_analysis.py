@@ -33,7 +33,7 @@ Task 2 : Systematic Uncertainty
 #################################################
 INF = 0
 MAX = 1  # To redefine in the code
-BINS = np.linspace(INF, 1, 20)
+BINS = np.linspace(INF, MAX, 20)
 
 
 def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
@@ -131,12 +131,15 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     Calculate the saved_info dictionary for mu calculation
     Replace with actual calculations
     """
-
+    global MAX
+    global BINS
     score = model.predict(holdout_set["data"])
 
     #    from systematic_analysis import tes_fitter
     #    from systematic_analysis import jes_fitter
 
+    MAX = sorted(set(score))[-3]
+    BINS = np.linspace(INF, MAX, 20)
     best_threshold = 0
 
     # Chose an arbitrary cutoff
@@ -148,7 +151,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     elif method == "Mu":
 
         # We calculate del_mu for many thresholds between 0 and 1
-        threshold = np.linspace(0.01, max(score), 100)
+        threshold = np.linspace(INF, MAX, 100)
         del_mu = [0] * 100
         mu_list = [0] * 100
 
@@ -176,7 +179,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         best_threshold = threshold[best_idx]
 
     elif method == "AMS":
-        threshold = np.linspace(0.01, max(score), 100)
+        threshold = np.linspace(INF, MAX, 100)
         ams = [0] * 100
 
         # Iter through thresholds
