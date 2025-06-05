@@ -84,30 +84,30 @@ def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
             saved_info["beta_hist"],
         )
 
-        # mu_unbinned, _ = likelihood_fit_mu(
-        #     np.sum(score_flat * weight),
-        #     saved_info["gamma"],
-        #     saved_info["beta"],
-        #     1,
-        # )
+        mu_unbinned, _ = likelihood_fit_mu(
+            np.sum(score_flat * weight),
+            saved_info["gamma"],
+            saved_info["beta"],
+            1,
+        )
 
-        # plot_likelihood(
-        #     np.sum(score_flat * weight),
-        #     saved_info["gamma"],
-        #     saved_info["beta"],
-        #     mu_unbinned,
-        #     plot_show=False,
-        # )
-        # plot_binned_likelihood(            
-        #     np.histogram(score, bins=BINS, weights=weight)[0],
-        #     saved_info["gamma_hist"],
-        #     saved_info["beta_hist"], 
-        #     mu,
-        # )
-        # plot_binned_histrograms(np.histogram(score, bins=BINS, weights=weight)[0],
-        #     saved_info["gamma_hist"],
-        #     saved_info["beta_hist"], 
-        # )
+        plot_likelihood(
+            np.sum(score_flat * weight),
+            saved_info["gamma"],
+            saved_info["beta"],
+            mu_unbinned,
+            plot_show=False,
+        )
+        plot_binned_likelihood(            
+            np.histogram(score, bins=BINS, weights=weight)[0],
+            saved_info["gamma_hist"],
+            saved_info["beta_hist"], 
+            mu,
+        )
+        plot_binned_histrograms(np.histogram(score, bins=BINS, weights=weight)[0],
+            saved_info["gamma_hist"],
+            saved_info["beta_hist"], 
+        )
 
     # Calculate del_mu_sys and tot
     del_mu_sys = abs(0.0 * mu)
@@ -309,8 +309,9 @@ def likelihood_fit_mu_tes_jes(
 
     def neg_ll(mu, tes, jes):
         # Get beta and gamma from the fit functions
-        beta = tes_fit(tes)
-        gamma = jes_fit(jes)
+        beta_tes, gamma_tes = tes_fit(tes)
+        beta_jes, gamma_jes = jes_fit(jes)
+
         lam = mu * gamma + beta
         
         lam = np.clip(lam, 1e-10, None)
