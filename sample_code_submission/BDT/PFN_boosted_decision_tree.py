@@ -7,9 +7,6 @@ import numpy as np
 
 
 class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
-    """
-    PFN model optimisé pour GPU.
-    """
 
     def __init__(self):
         super().__init__("PFNBoostedDecisionTree")
