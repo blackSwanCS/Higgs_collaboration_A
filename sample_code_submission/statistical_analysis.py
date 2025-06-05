@@ -33,7 +33,7 @@ Task 2 : Systematic Uncertainty
 #################################################
 INF = 0
 MAX = 1  # To redefine in the code
-NUMBER_OF_BINS = 30
+NUMBER_OF_BINS = 100
 BINS = np.linspace(INF, MAX, NUMBER_OF_BINS)
 
 
@@ -189,8 +189,8 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
             score2 = score.flatten() > t
             score2 = score2.astype(int)
 
-            if len(score2) == 0 :
-                continue 
+            if len(score2) == 0:
+                continue
 
             label = holdout_set["labels"]
 
@@ -275,7 +275,7 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
-        return -(n_obs * np.log(lam) - lam)  + 0.5*( (mu - 1)/1.03 )**2 
+        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 1.03) ** 2
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -291,7 +291,8 @@ def likelihood_fit_mu_binned(
     N_obs,
     gamma_hist,
     beta_hist,
-    mu_init=1.0,):
+    mu_init=1.0,
+):
 
     # Binned negative log-likelihood function
     def neg_ll(mu):
