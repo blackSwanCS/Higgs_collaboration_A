@@ -16,8 +16,8 @@ class NeuralNetwork:
 
         n_dim = train_data.shape[1]
 
-        self.model.add(Dense(10, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(10, activation="relu"))
+        self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
+        self.model.add(Dense(100, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -36,9 +36,6 @@ class NeuralNetwork:
         test_data = self.scaler.transform(test_data)
         predictions = self.model.predict(test_data).flatten().ravel()
 
-        print("predictions.shape:", predictions.shape)
-        print("labels.shape:", np.array(labels).shape)
-        print("weights.shape:", np.array(weights).shape)
         # Store predictions for significance calculation
         self.__predicted_data = predictions
         # Optionally store test labels and weights if provided
@@ -56,17 +53,7 @@ class NeuralNetwork:
         if self.__test_labels is None:
             raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
         
-        # --- Patch: Align arrays to the smallest length ---
-        pred_data = self.__predicted_data
-        test_labels_arr = np.array(self.__test_labels)
-        test_weights_arr = np.array(self.__test_weights)
-        n = min(pred_data.shape[0], test_labels_arr.shape[0], test_weights_arr.shape[0])
-        if pred_data.shape[0] != n or test_labels_arr.shape[0] != n or test_weights_arr.shape[0] != n:
-            pred_data = pred_data[:n]
-            test_labels_arr = test_labels_arr[:n]
-            test_weights_arr = test_weights_arr[:n]
-        # -------------------------------------------------------
-        
+
         def __amsasimov(s_in, b_in):
             s = np.copy(s_in)
             b = np.copy(b_in)
@@ -97,9 +84,8 @@ class NeuralNetwork:
             return significance
 
         vamsasimov_xgb = __significance_vscore(
-            y_true=test_labels_arr,
-            y_score=pred_data,
-            sample_weight=test_weights_arr,
+            y_true=self.__test_labels,
+            y_score=self.__predicted_data,
+            sample_weight= self.__test_weights,
         )
-        print(np.max(vamsasimov_xgb))
         return np.max(vamsasimov_xgb)
