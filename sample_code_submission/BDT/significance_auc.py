@@ -47,7 +47,6 @@ def test(n_estimator, max_depth, eta, subsample):
         "objective": "binary:logistic",
         "eval_metric": "logloss",
         "tree_method": "hist",
-        "device": "cuda",
     }
 
     significance, auc = evaluate(
