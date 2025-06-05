@@ -14,8 +14,8 @@ class NeuralNetwork:
 
     def __init__(self, train_data):
         self.model = Sequential()
-        self.layers = 2
-        self.width = 100
+        self.layers = 10
+        self.width = 300
         self.activation = "relu"
         n_dim = train_data.shape[1]
         self.model.add(Dense(self.width, input_dim=n_dim, activation=self.activation))
@@ -27,7 +27,7 @@ class NeuralNetwork:
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
         )
         self.scaler = StandardScaler()
-        self.batchsize = 16
+        self.batchsize = 128
         self.epochs = 15
 
     def fit(self, train_data, y_train, weights_train=None):
