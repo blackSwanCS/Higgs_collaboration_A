@@ -31,9 +31,12 @@ Task 2 : Systematic Uncertainty
 #################################################
 #               MAIN FUNCTIONS                  #
 #################################################
-BINS = np.linspace(0, 1, 101)
+INF = 0
+MAX = 1  # To redefine in the code
+BINS = np.linspace(INF, 1, 20)
 
-def compute_mu(score, weight, saved_info, method="Likelihood"):
+
+def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -98,15 +101,16 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             mu_unbinned,
             plot_show=False,
         )
-        plot_binned_likelihood(            
+        plot_binned_likelihood(
             np.histogram(score, bins=BINS, weights=weight)[0],
             saved_info["gamma_hist"],
-            saved_info["beta_hist"], 
+            saved_info["beta_hist"],
             mu,
         )
-        plot_binned_histrograms(np.histogram(score, bins=BINS, weights=weight)[0],
+        plot_binned_histrograms(
+            np.histogram(score, bins=BINS, weights=weight)[0],
             saved_info["gamma_hist"],
-            saved_info["beta_hist"], 
+            saved_info["beta_hist"],
         )
 
     # Calculate del_mu_sys and tot
@@ -144,7 +148,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     elif method == "Mu":
 
         # We calculate del_mu for many thresholds between 0 and 1
-        threshold = np.linspace(0.01, 0.99, 100)
+        threshold = np.linspace(0.01, max(score), 100)
         del_mu = [0] * 100
         mu_list = [0] * 100
 
@@ -172,7 +176,7 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         best_threshold = threshold[best_idx]
 
     elif method == "AMS":
-        threshold = np.linspace(0.01, 0.99, 100)
+        threshold = np.linspace(0.01, max(score), 100)
         ams = [0] * 100
 
         # Iter through thresholds
@@ -227,7 +231,9 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
     )
 
     beta_hist, _ = np.histogram(
-        score[background_mask], bins=BINS, weights=holdout_set["weights"][background_mask]
+        score[background_mask],
+        bins=BINS,
+        weights=holdout_set["weights"][background_mask],
     )
 
     saved_info = {
@@ -262,7 +268,7 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
-        return -(n_obs * np.log(lam) - lam)  + 0.5*( (mu - 1)/0.03 )**2 
+        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 0.03) ** 2
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -285,7 +291,7 @@ def likelihood_fit_mu_binned(
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-        return -np.sum(N_obs * np.log(pred) - pred) + 101*0.5*( (mu - 1)/0.03 )**2 
+        return -np.sum(N_obs * np.log(pred) - pred) + 101 * 0.5 * ((mu - 1) / 0.03) ** 2
 
     # Fit using Minuit
     m = Minuit(neg_ll, mu=mu_init)
@@ -307,12 +313,12 @@ def likelihood_fit_mu_tes_jes(
 
     def neg_ll(mu, tes, jes):
         # Get beta and gamma from the fit functions
-        beta_tes, gamma_tes  = tes_fit(tes)
+        beta_tes, gamma_tes = tes_fit(tes)
         beta_jes, gamma_jes = jes_fit(jes)
-        beta= beta_tes + beta_jes
+        beta = beta_tes + beta_jes
         gamma = gamma_tes + gamma_jes
         lam = mu * gamma + beta
-        
+
         lam = np.clip(lam, 1e-10, None)
         return -(n_obs * np.log(lam) - lam)
 
@@ -327,7 +333,6 @@ def likelihood_fit_mu_tes_jes(
     return m.values["mu"], m.errors["mu"]
 
 
-
 #################################################
 #                    PLOTS                      #
 #################################################
@@ -335,7 +340,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)
-        return -(n_obs * np.log(lam) - lam) + 0.5*( (mu - 1)/0.03 )**2
+        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 0.03) ** 2
 
     mu_vals = np.linspace(max(0, mu_hat - 2), mu_hat + 2, 400)
     nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
@@ -378,7 +383,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         color="red",
         linestyle="--",
         label=rf"Single Binned $\hat\mu = {mu_hat:.3f}$",
-)
+    )
     plt.axvline(
         mu_lower,
         color="green",
