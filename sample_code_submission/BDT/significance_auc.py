@@ -1,6 +1,6 @@
 import numpy as np
 from HiggsML.datasets import download_dataset
-from xgb_boosted_decision_tree import XGBBoostedDecisionTree
+from BDT.xgb_boosted_decision_tree import XGBBoostedDecisionTree
 from itertools import product
 from tqdm import tqdm
 from time import time
@@ -50,4 +50,4 @@ def test(n_estimator, max_depth, eta, subsample):
     print(f"Significance: {significance:.4f},AUC : {auc}")
 
 
-test(450, 8, 0.1525, 0.875)
+test(450, 7, 0.15525, 0.9375)
