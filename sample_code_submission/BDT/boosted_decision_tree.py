@@ -1,4 +1,4 @@
-import BDT.xgb_boosted_decision_tree
+import xgb_boosted_decision_tree
 import numpy as np
 
 
