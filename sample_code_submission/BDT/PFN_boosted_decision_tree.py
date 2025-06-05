@@ -48,7 +48,6 @@ if __name__ == "__main__":
         get_data()
     )
 
-    # Utilise tout le dataset pour l'entraînement (sauf si test rapide)
     train_data = train_data[:20000]
     train_labels = train_labels[:20000]
     train_weights = train_weights[:20000]
@@ -56,9 +55,14 @@ if __name__ == "__main__":
     val_labels = val_labels[:200000]
     val_weights = val_weights[:200000]
 
-    print("Signal:", np.sum(val_labels==1), "Background:", np.sum(val_labels==0))
-    print("Poids signal:", np.sum(val_weights[val_labels==1]), "Poids bruit:", np.sum(val_weights[val_labels==0]))
-    
+    print("Signal:", np.sum(val_labels == 1), "Background:", np.sum(val_labels == 0))
+    print(
+        "Poids signal:",
+        np.sum(val_weights[val_labels == 1]),
+        "Poids bruit:",
+        np.sum(val_weights[val_labels == 0]),
+    )
+
     model = PFN_boosted_decision_tree()
     t0 = time()
     model.fit(train_data, train_labels, train_weights)

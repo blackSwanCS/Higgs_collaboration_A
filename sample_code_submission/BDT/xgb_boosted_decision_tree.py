@@ -26,7 +26,9 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
         self._model.fit(self._scaler.transform(train_data), self._labels, self._weights)
 
     def predict(self, test_data, labels=None, weights=None):
-        self._predicted_data = self.predict_full_output(test_data, labels, weights)[:, 1]
+        self._predicted_data = self.predict_full_output(test_data, labels, weights)[
+            :, 1
+        ]
         return self._predicted_data
 
     def predict_full_output(self, test_data, labels=None, weights=None):
