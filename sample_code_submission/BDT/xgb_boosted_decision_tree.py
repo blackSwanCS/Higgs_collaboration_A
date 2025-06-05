@@ -3,6 +3,8 @@ from xgboost import XGBClassifier
 
 import os
 import sys
+
+
 def find_and_add_module_path(filename):
     """Ajoute à sys.path le dossier contenant filename, en remontant jusqu'à 3 niveaux."""
     cur = os.path.abspath(os.path.dirname(__file__))
@@ -13,6 +15,8 @@ def find_and_add_module_path(filename):
                 sys.path.insert(0, cur)
             return
         cur = os.path.dirname(cur)
+
+
 find_and_add_module_path("constants.py")
 find_and_add_module_path("abstract_boosted_decision_tree.py")
 

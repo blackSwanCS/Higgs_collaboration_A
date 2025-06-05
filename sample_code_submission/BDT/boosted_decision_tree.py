@@ -2,6 +2,8 @@ import numpy as np
 
 import os
 import sys
+
+
 def find_and_add_module_path(filename):
     """Ajoute à sys.path le dossier contenant filename, en remontant jusqu'à 3 niveaux."""
     cur = os.path.abspath(os.path.dirname(__file__))
@@ -12,9 +14,12 @@ def find_and_add_module_path(filename):
                 sys.path.insert(0, cur)
             return
         cur = os.path.dirname(cur)
+
+
 find_and_add_module_path("xgb_boosted_decision_tree.py")
 
 import xgb_boosted_decision_tree
+
 
 def get_best_model():
     """
@@ -23,6 +28,8 @@ def get_best_model():
     model = xgb_boosted_decision_tree.XGBBoostedDecisionTree()
     model.load_model()
     return model
+
+
 """
     params = {
         "n_estimators": np.int64(191),
