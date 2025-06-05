@@ -94,12 +94,27 @@ class Model:
         # Initialize saved_info (will be updated after training)
         self.saved_info = {}
 
+<<<<<<< HEAD
         # Load or initialize the model
         model_file = os.path.join(self.model_path, "model.h5")
         if os.path.exists(self.model_path) and os.path.exists(model_file):
             print("Loading pre-trained model...")
             self.load_model()
             self.is_trained = True
+=======
+        if model_type == "BDT":
+            import BDT.boosted_decision_tree
+
+            self.model = BDT.boosted_decision_tree.get_best_model()
+        elif model_type == "NN":
+            from neural_network import NeuralNetwork
+
+            self.model = NeuralNetwork(train_data=self.training_set["data"])
+        elif model_type == "sample_model":
+            from sample_model import SampleModel
+
+            self.model = SampleModel()
+>>>>>>> main
         else:
             print("No pre-trained model found. Initializing a new model.")
             self.initialize_model()
@@ -149,7 +164,29 @@ class Model:
         train_score = self.model.predict(self.training_set["data"])
         train_results = compute_mu(train_score, self.training_set["weights"], self.saved_info)
         holdout_score = self.model.predict(self.holdout_set["data"])
+<<<<<<< HEAD
         holdout_results = compute_mu(holdout_score, self.holdout_set["weights"], self.saved_info)
+=======
+        holdout_results = compute_mu(
+            holdout_score, self.holdout_set["weights"], self.saved_info
+        )
+
+        """
+        print(
+            "Significance",
+            self.model.significance(
+                self.holdout_set["labels"], self.holdout_set["weights"]
+            ),
+        )
+        print(
+            "AUC",
+            self.model.auc(self.holdout_set["labels"], self.holdout_set["weights"]),
+        )
+        """
+
+        self.valid_set = self.systematics(self.valid_set)
+
+>>>>>>> main
         valid_score = self.model.predict(self.valid_set["data"])
         valid_results = compute_mu(valid_score, self.valid_set["weights"], self.saved_info)
 
