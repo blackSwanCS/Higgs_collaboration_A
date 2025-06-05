@@ -1,4 +1,4 @@
-from boosted_decision_tree import get_best_model
+from BDT.boosted_decision_tree import get_best_model
 from get_data import get_data
 
 
