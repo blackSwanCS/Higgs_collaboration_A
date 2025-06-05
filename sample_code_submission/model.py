@@ -9,7 +9,7 @@ NN = True
 
 def _clean_saved_info(info):
     """
-    Return a cleaned dictionary where objects not JSON serializable 
+    Return a cleaned dictionary where objects not JSON serializable
     (like functions) are converted to strings.
     """
     cleaned = {}
@@ -40,11 +40,12 @@ class Model:
         self.systematics = systematics if systematics is not None else lambda x: x
 
         # Initialize datasets
-        indices = np.arange(15000)
+        indices = np.arange(1_400_000)
         np.random.shuffle(indices)
-        train_indices = indices[:5000]
-        holdout_indices = indices[5000:10000]
-        valid_indices = indices[10000:]
+
+        train_indices = indices[:1_350_000]
+        holdout_indices = indices[1_350_000:1_360_000]
+        valid_indices = indices[1_360_000:]
 
         training_df = get_train_set(selected_indices=train_indices)
         self.training_set = {
@@ -100,9 +101,11 @@ class Model:
         """
         if self.model_type == "NN":
             from neural_network import NeuralNetwork
+
             self.model = NeuralNetwork(self.training_set["data"])
         elif self.model_type == "BDT":
             from BDT.boosted_decision_tree import get_best_model
+
             self.model = get_best_model()
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")
@@ -116,7 +119,9 @@ class Model:
             return
 
         if self.model is None:
-            raise ValueError("Model is not initialized. Ensure 'initialize_model' or 'load_model' is called.")
+            raise ValueError(
+                "Model is not initialized. Ensure 'initialize_model' or 'load_model' is called."
+            )
 
         balanced_set = self.training_set.copy()
         weights_train = self.training_set["weights"].copy()
@@ -126,19 +131,91 @@ class Model:
             weights_train[train_labels == 1].sum(),
         )
         for i in range(len(class_weights_train)):
-            weights_train[train_labels == i] *= (max(class_weights_train) / class_weights_train[i])
+            weights_train[train_labels == i] *= (
+                max(class_weights_train) / class_weights_train[i]
+            )
         balanced_set["weights"] = weights_train
 
         self.model.fit(
             balanced_set["data"], balanced_set["labels"], balanced_set["weights"]
         )
 
-        self.saved_info = calculate_saved_info(self.model, self.holdout_set)
-        self.save_model()
+        # self.model.save()
 
         self.holdout_set = self.systematics(self.holdout_set)
         self.training_set = self.systematics(self.training_set)
         self.saved_info = calculate_saved_info(self.model, self.holdout_set)
+
+        self.training_set = self.systematics(self.training_set)
+
+        # Compute  Results
+        train_score = self.model.predict(self.training_set["data"])
+        train_results = compute_mu(
+            train_score, self.training_set["weights"], self.saved_info
+        )
+
+        holdout_score = self.model.predict(self.holdout_set["data"])
+        holdout_results = compute_mu(
+            holdout_score, self.holdout_set["weights"], self.saved_info
+        )
+
+        print(
+            "Significance",
+            self.model.significance(
+                self.holdout_set["labels"], self.holdout_set["weights"]
+            ),
+        )
+        print(
+            "AUC",
+            self.model.auc(self.holdout_set["labels"], self.holdout_set["weights"]),
+        )
+
+        self.valid_set = self.systematics(self.valid_set)
+
+        valid_score = self.model.predict(self.valid_set["data"])
+
+        valid_results = compute_mu(
+            valid_score, self.valid_set["weights"], self.saved_info
+        )
+
+        print("Train Results: ")
+        for key in train_results.keys():
+            print("\t", key, " : ", train_results[key])
+
+        print("Holdout Results: ")
+        for key in holdout_results.keys():
+            print("\t", key, " : ", holdout_results[key])
+
+        print("Valid Results: ")
+        for key in valid_results.keys():
+            print("\t", key, " : ", valid_results[key])
+
+        self.valid_set["data"]["score"] = valid_score
+        from utils import roc_curve_wrapper, histogram_dataset
+
+        histogram_dataset(
+            self.valid_set["data"],
+            self.valid_set["labels"],
+            self.valid_set["weights"],
+            columns=["score"],
+        )
+
+        from HiggsML.visualization import stacked_histogram
+
+        stacked_histogram(
+            self.valid_set["data"],
+            self.valid_set["labels"],
+            self.valid_set["weights"],
+            self.valid_set["detailed_labels"],
+            "score",
+        )
+
+        roc_curve_wrapper(
+            score=valid_score,
+            labels=self.valid_set["labels"],
+            weights=self.valid_set["weights"],
+            plot_label="valid_set" + self.name,
+        )
 
     def predict(self, test_set):
         """
@@ -186,9 +263,11 @@ class Model:
         """
         if self.model_type == "NN":
             from neural_network import NeuralNetwork
+
             self.model = NeuralNetwork()
         elif self.model_type == "BDT":
             from BDT.boosted_decision_tree import get_best_model
+
             self.model = get_best_model()
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")

@@ -1,10 +1,12 @@
 import tensorflow as tf
+
 tf.config.run_functions_eagerly(True)
 
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
 import os
+
 
 class NeuralNetwork:
     """
@@ -36,7 +38,9 @@ class NeuralNetwork:
     def fit(self, train_data, y_train, weights_train=None):
         """Train the model."""
         if self.model is None:
-            raise ValueError("Model is not initialized. Ensure `_initialize_model` is called or load a saved model.")
+            raise ValueError(
+                "Model is not initialized. Ensure `_initialize_model` is called or load a saved model."
+            )
 
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
@@ -59,6 +63,7 @@ class NeuralNetwork:
 
         scaler_path = os.path.join(path, "scaler.pkl")
         import joblib
+
         joblib.dump(self.scaler, scaler_path)
         print(f"Scaler saved to {scaler_path}")
 
@@ -70,5 +75,6 @@ class NeuralNetwork:
 
         scaler_path = os.path.join(path, "scaler.pkl")
         import joblib
+
         self.scaler = joblib.load(scaler_path)
         print(f"Scaler loaded from {scaler_path}")
