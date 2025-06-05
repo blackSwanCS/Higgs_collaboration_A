@@ -132,6 +132,7 @@ class NeuralNetwork:
             y_score=pred_data,
             sample_weight=test_weights_arr,
         )
+        print(np.max(vamsasimov_xgb))
         return np.max(vamsasimov_xgb)
     
     def significance_3(self):
