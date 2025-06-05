@@ -15,7 +15,7 @@ params_best = {
     "objective": "binary:logistic",
     "use_label_encoder": False,
     "eval_metric": "logloss",
-    "eta": np.float64(0.15525),
+    "eta": np.float64(0.1525),
     "subsample": np.float64(0.9375),
 }
 
