@@ -285,7 +285,7 @@ def likelihood_fit_mu_binned(
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-        return -np.sum(N_obs * np.log(pred) - pred)
+        return -np.sum(N_obs * np.log(pred) - pred) + 101*0.5*( (mu - 1)/0.03 )**2 
 
     # Fit using Minuit
     m = Minuit(neg_ll, mu=mu_init)
