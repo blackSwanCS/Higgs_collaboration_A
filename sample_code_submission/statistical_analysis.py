@@ -298,7 +298,7 @@ def likelihood_fit_mu_binned(
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-        return -np.sum(N_obs * np.log(pred) - pred) + 101 * 0.5 * ((mu - 1) / 0.03) ** 2
+        return -np.sum(N_obs * np.log(pred) - pred) + 0.5 * ((mu - 1) / 1.03) ** 2
 
     # Fit using Minuit
     m = Minuit(neg_ll, mu=mu_init)
@@ -347,20 +347,24 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)
-        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 0.03) ** 2
+        return -(n_obs * np.log(lam) - lam) + 0.5 * ((mu - 1) / 1.03) ** 2
 
-    mu_vals = np.linspace(0.5, 2.5, 400)
-    nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
+    # Scan a wide range first
+    mu_vals_full = np.linspace(0, 5, 1000)
+    nll_vals_full = np.array([neg_ll(mu) for mu in mu_vals_full])
+    nll_min = np.min(nll_vals_full)
+    delta_nll_full = nll_vals_full - nll_min
 
-    # Normalize to ΔNLL
-    nll_min = np.min(nll_vals)
-    delta_nll = nll_vals - nll_min
+    # Restrict to region where delta_nll < 20
+    mask = delta_nll_full < 20
+    mu_vals = mu_vals_full[mask]
+    delta_nll = delta_nll_full[mask]
 
     left_mask = mu_vals < mu_hat
     right_mask = mu_vals > mu_hat
 
     try:
-        # Interpolate to find where ΔNLL = 0.5
+        from scipy.interpolate import interp1d
         left_interp = interp1d(
             delta_nll[left_mask],
             mu_vals[left_mask],
@@ -383,7 +387,6 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
         delta_mu = 0.0
         print("Interpolation error:", e)
 
-    # Plot
     plt.plot(mu_vals, delta_nll, label=r"Single Binned $\Delta$NLL", color="blue")
     plt.axvline(
         mu_hat,
@@ -414,20 +417,27 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
 
 
 def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True):
-
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)
-        return -np.sum(N_obs * np.log(pred) - pred)
+        return -np.sum(N_obs * np.log(pred) - pred) + 0.5 * ((mu - 1) / 1.03) ** 2
 
-    mu_vals = np.linspace(0.5, 2.5, 400)
-    nll_vals = np.array([neg_ll(mu) for mu in mu_vals])
-    delta_nll = nll_vals - np.min(nll_vals)
+    # Scan a wide range first
+    mu_vals_full = np.linspace(0, 5, 1000)
+    nll_vals_full = np.array([neg_ll(mu) for mu in mu_vals_full])
+    nll_min = np.min(nll_vals_full)
+    delta_nll_full = nll_vals_full - nll_min
+
+    # Restrict to region where delta_nll < 20
+    mask = delta_nll_full < 20
+    mu_vals = mu_vals_full[mask]
+    delta_nll = delta_nll_full[mask]
 
     left_mask = mu_vals < mu_hat
     right_mask = mu_vals > mu_hat
 
     try:
+        from scipy.interpolate import interp1d
         left_interp = interp1d(
             delta_nll[left_mask],
             mu_vals[left_mask],
@@ -450,22 +460,21 @@ def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True)
         delta_mu = 0.0
         print("Interpolation error:", e)
 
-    # Plot with slightly shifted colors
     plt.plot(
         mu_vals, delta_nll, label=r"Binned $\Delta$NLL", color="#4A90E2"
-    )  # Lighter blue
+    )
     plt.axvline(
         mu_hat,
         color="#D0021B",
         linestyle="--",
         label=rf"Binned $\hat\mu = {mu_hat:.3f}$",
-    )  # Soft red
+    )
     plt.axvline(
         mu_lower,
         color="#50E3C2",
         linestyle="--",
         label=rf"Binned $\mu_{{-1\sigma}} = {mu_lower:.3f}$",
-    )  # Light teal
+    )
     plt.axvline(
         mu_upper,
         color="#50E3C2",
