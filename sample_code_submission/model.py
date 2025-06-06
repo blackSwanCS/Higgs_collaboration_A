@@ -304,10 +304,6 @@ class Model:
             "p16": result_mu_cal["mu_hat"] - result_mu_cal["del_mu_tot"],
             "p84": result_mu_cal["mu_hat"] + result_mu_cal["del_mu_tot"],
         }
-<<<<<<< HEAD
-
-        return result
-=======
         return result
 
     def save_model(self):
@@ -347,4 +343,3 @@ class Model:
         else:
             self.saved_info = {}
         print(f"Model loaded from {self.model_path}")
->>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497

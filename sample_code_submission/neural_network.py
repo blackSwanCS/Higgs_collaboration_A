@@ -5,12 +5,9 @@ tf.config.run_functions_eagerly(True)
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
-<<<<<<< HEAD
 import numpy as np
 import matplotlib.pyplot as plt
-=======
 import os
->>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
 
 
 class NeuralNetwork:
