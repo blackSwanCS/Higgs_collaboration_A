@@ -3,8 +3,17 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Ghost
+.ghost
+.ghost*
+*.ghost
+*.ghost.*
+
 # C extensions
 *.so
+
+# Ghost
+.ghost*
 
 # Distribution / packaging
 .Python
@@ -164,3 +173,7 @@ cython_debug/
 sample_result_submission/
 scoring_output/
 *.zip
+
+
+
+saved_model 

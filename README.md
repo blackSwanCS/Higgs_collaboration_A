@@ -9,3 +9,8 @@ Pour effectuer des tests d'optimisation sur le réseau de neurones créé, veuil
 git checkout NN_test
 
 
+# Files to launch
+
+## BDT Training
+
+Launch the train_model.py file inside /sample_code_submision/BDT
