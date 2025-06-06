@@ -6,7 +6,7 @@ Collaboration repo for Higgs EL 1 A
 Pour effectuer des tests d'optimisation sur le réseau de neurones créé, veuillez vous rendre sur la **branche NN_test** :
 
 ```bash
-git checkout NN_test
+git checkout NN_test_opti
 
 
 # Files to launch
