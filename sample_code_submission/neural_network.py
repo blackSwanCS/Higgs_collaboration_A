@@ -30,6 +30,7 @@ class NeuralNetwork:
         self.scaler = StandardScaler()
         self.batchsize = 128
         self.epochs = 15
+        #Beaucoup de modifications afin de pouvoir modifier dans une boucle les paramètres du réseau neuronal
 
     def fit(self, train_data, y_train, weights_train=None):
         # Fit the scaler on the training data
