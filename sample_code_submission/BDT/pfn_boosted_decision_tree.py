@@ -1,18 +1,22 @@
-from BDT.boosted_decision_tree import AbstractBoostedDecisionTree
-from tabpfn import PFNClassifier
+from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+from tabpfn import TabPFNClassifier
+from get_data import get_data
+from time import time
+import torch
+import numpy as np
 
 
 class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
     """
-    This class implements a boosted decision tree model using PFN's implementation.
+    PFN model optimisé pour GPU.
     """
 
-    def __init__(self, params=None):
+    def __init__(self):
         super().__init__("PFNBoostedDecisionTree")
-        if params is None:
-            self._model = PFNClassifier()
-        else:
-            self._model = PFNClassifier(**params)
+        # Vérifie si CUDA est dispo, sinon fallback CPU
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device: {device}")
+        self._model = TabPFNClassifier(ignore_pretraining_limits=True, device=device)
 
     def fit(self, train_data, labels, weights=None):
         if super().fit(train_data, labels, weights):
@@ -20,14 +24,54 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
         self._model.fit(
             self._scaler.transform(train_data),
             self._labels,
-            sample_weight=self._weights,
         )
 
     def predict(self, test_data, labels=None, weights=None):
-        return self.predict_full_output(test_data, labels, weights)[:, 1]
+        self._predicted_data = self.predict_full_output(test_data, labels, weights)[
+            :, 1
+        ]
+        return self._predicted_data
 
     def predict_full_output(self, test_data, labels=None, weights=None):
         super().predict_full_output(test_data, labels, weights)
-        temp = self._model.predict_proba(self._scaler.transform(test_data))
-        self._predicted_data = temp[:, 1]
-        return temp
+        return self._model.predict_proba(self._scaler.transform(test_data))
+
+    def load_model(self):
+        return super().load_model()
+
+    def save(self):
+        return super().save()
+
+
+if __name__ == "__main__":
+    train_data, train_labels, train_weights, val_data, val_labels, val_weights = (
+        get_data()
+    )
+
+    train_data = train_data[:20000]
+    train_labels = train_labels[:20000]
+    train_weights = train_weights[:20000]
+    val_data = val_data[:200000]
+    val_labels = val_labels[:200000]
+    val_weights = val_weights[:200000]
+
+    print("Signal:", np.sum(val_labels == 1), "Background:", np.sum(val_labels == 0))
+    print(
+        "Poids signal:",
+        np.sum(val_weights[val_labels == 1]),
+        "Poids bruit:",
+        np.sum(val_weights[val_labels == 0]),
+    )
+
+    model = PFN_boosted_decision_tree()
+    t0 = time()
+    model.fit(train_data, train_labels, train_weights)
+    t1 = time()
+    model.save()
+    print(f"Fitting time: {t1 - t0:.2f} seconds")
+    model.predict(val_data, val_labels, val_weights)
+    print("Unique predictions:", np.unique(model._predicted_data))
+    significance = model.significance()
+    auc = model.auc(val_labels, val_weights)
+    print(f"AUC: {auc:.4f}")
+    print(f"Significance: {significance:.4f}")
