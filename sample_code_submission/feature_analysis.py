@@ -334,7 +334,7 @@ def total_scores_systematic_importance(data,features=features_all):
     plt.show()
     return sorted(score_total.keys(), key=lambda k: score_total[k], reverse=True)
 
-# THIS FUNCTION DOESNT WORK it was supposed to get the feature importance with BDT
+# THIS FUNCTION DOES NOT WORK it was supposed to get the feature importance with BDT
 def minimal_dependent_features(data):
     """
     Uses permutation importance on BoostedDecisionTree to get top 10 important features.
