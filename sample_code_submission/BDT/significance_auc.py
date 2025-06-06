@@ -1,10 +1,24 @@
 import numpy as np
-from HiggsML.datasets import download_dataset
-from sample_code_submission.BDT.XGB_boosted_decision_tree import XGBBoostedDecisionTree
-from itertools import product
-from tqdm import tqdm
 from time import time
 from get_data import get_data
+import os
+import sys
+
+
+def find_and_add_module_path(filename):
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("XGB_boosted_decision_tree.py")
+
+from XGB_boosted_decision_tree import XGBBoostedDecisionTree
 
 
 def evaluate(
@@ -34,7 +48,6 @@ def test(n_estimator, max_depth, eta, subsample):
         "objective": "binary:logistic",
         "eval_metric": "logloss",
         "tree_method": "hist",
-        "device": "cuda",
     }
 
     significance, auc = evaluate(

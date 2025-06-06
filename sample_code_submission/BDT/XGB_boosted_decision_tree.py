@@ -1,11 +1,29 @@
 # library for calculation
 from xgboost import XGBClassifier
 
+import os
+import sys
+
+
+def find_and_add_module_path(filename):
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("constants.py")
+find_and_add_module_path("abstract_boosted_decision_tree.py")
+
 # constants
-from BDT.constants import *
+from constants import *
 
 # Objects
-from BDT.abstract_boosted_decision_tree import AbstractBoostedDecisionTree
+from abstract_boosted_decision_tree import AbstractBoostedDecisionTree
 
 
 class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):

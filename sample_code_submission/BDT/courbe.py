@@ -1,9 +1,27 @@
 from boosted_decision_tree import get_best_model
+from boosted_decision_tree import get_best_model
 from get_data import get_data
-from sample_code_submission.BDT.XGB_boosted_decision_tree import XGBBoostedDecisionTree
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+import sys
+import os
+
+
+def find_and_add_module_path(filename):
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("XGB_boosted_decision_tree.py")
+
+from XGB_boosted_decision_tree import XGBBoostedDecisionTree
 
 train_data, train_labels, train_weights, val_data, val_labels, val_weights = get_data()
 
@@ -14,7 +32,7 @@ params_best = {
     "objective": "binary:logistic",
     "use_label_encoder": False,
     "eval_metric": "logloss",
-    "eta": np.float64(0.15525),
+    "eta": np.float64(0.1525),
     "subsample": np.float64(0.9375),
 }
 
@@ -79,7 +97,7 @@ params = {
     "objective": "binary:logistic",
     "use_label_encoder": False,
     "eval_metric": "logloss",
-    "eta": np.float64(0.15525),
+    "eta": np.float64(0.1525),
     "subsample": np.float64(0.9375),
 }
 
