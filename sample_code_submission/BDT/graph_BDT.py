@@ -77,7 +77,53 @@ def courbes_eta_et_subsample():
         # Afficher chaque figure séparément
         plt.tight_layout()
         plt.show()
+    
+
+
+def courbe_significance():
+    """trace la moyenne de la significance en fonction de n_estimators. (la moyenne sur les valeurs 
+    de paramètres eta, max_depth et subsample)  """
+    # Charger les données
+    data = np.loadtxt('C:/Users/julie/Documents/CS/Cours/Black Swans/EI/Higgs_collaboration_A/sample_code_submission/BDT/data_simulations.txt', delimiter=',')
+    
+    # Extraire les colonnes : 
+    # 0 = n_estimators, 1 = max_depth, 2 = eta, 3 = subsample, ..., -1 = significance
+    n_estimators = data[:, 0] 
+    print(n_estimators)
+    max_depth = data[:, 1]
+    eta = data[:, 2]
+    subsample = data[:, 3]
+    significance = data[:, -1]
+    
+    # Créer une liste unique de valeurs pour n_estimators
+    unique_n_estimators = np.unique(n_estimators)
+    unique_n_estimators = unique_n_estimators[:-1] #on eclu la dernière valeur de n_estimators (pas assez de simulations faites pour obtenir une moyenne significative)
+    # Initialiser un tableau pour stocker les moyennes de significance
+    mean_significance = []
+
+    # Calculer la moyenne de la significance pour chaque n_estimators
+    for n in unique_n_estimators:
+        # Filtrer les données pour cette valeur de n_estimators
+        mask = (n_estimators == n)
+        # Calculer la moyenne de la significance pour cette valeur de n_estimators
+        mean_significance.append(np.mean(significance[mask]))
+    
+    # Convertir la liste en array pour une utilisation facile avec matplotlib
+    mean_significance = np.array(mean_significance)
+
+    # Tracer la moyenne de la significance en fonction de n_estimators
+    plt.figure(figsize=(10, 6))
+    plt.plot(unique_n_estimators, mean_significance, marker='o', linestyle='-', color='b', label='Mean Significance')
+    plt.xlabel('n_estimators')
+    plt.ylabel('Mean Significance')
+    plt.title('Mean Significance vs n_estimators')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
 
 # Appel de la fonction
-courbes_nest_et_maxdepth()
+courbe_significance()
+#courbes_nest_et_maxdepth()
 #courbes_eta_et_subsample()
