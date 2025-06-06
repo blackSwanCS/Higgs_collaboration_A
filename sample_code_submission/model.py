@@ -281,7 +281,7 @@ class Model:
             from BDT.boosted_decision_tree import get_best_model
 
             self.model = get_best_model()
-        elif self.model_type == "sample_model": # By default use BDT
+        elif self.model_type == "sample_model":  # By default use BDT
             from BDT.boosted_decision_tree import get_best_model
 
             self.model = get_best_model()
