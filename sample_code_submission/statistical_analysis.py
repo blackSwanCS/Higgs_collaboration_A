@@ -37,7 +37,7 @@ NUMBER_OF_BINS = 8
 BINS = np.linspace(INF, MAX, NUMBER_OF_BINS)
 
 
-def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
+def compute_mu(score, weight, saved_info, method="Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
