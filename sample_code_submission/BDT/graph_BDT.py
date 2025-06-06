@@ -1,48 +1,83 @@
-import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import matplotlib.pyplot as plt
-
 # Charger les données
-df = pd.read_csv('data_simulations.txt', sep='\t')
+data = np.loadtxt('C:/Users/julie/Documents/CS/Cours/Black Swans/EI/Higgs_collaboration_A/sample_code_submission/BDT/data_simulations.txt', delimiter=',')
+# Colonnes : 0=n_estimators, 1=max_depth, 2=eta, 3=subsample, ..., -1=significance
+n_estimators = data[:, 0]
+max_depth = data[:, 1]
+eta = data[:, 2]
+subsample = data[:, 3]
+significance = data[:, -1]
 
-# S'assurer que les colonnes sont bien nommées
-# Colonnes attendues : 'n_estimators', 'max_depth', 'eta', 'subsample', 'significance'
 
-# Courbes 3D pour différentes valeurs de eta
-etas = df['eta'].unique()
-fig_eta = plt.figure(figsize=(10, 7))
-ax_eta = fig_eta.add_subplot(111, projection='3d')
-for eta in etas:
-    subset = df[df['eta'] == eta]
-    ax_eta.plot(
-        subset['n_estimators'],
-        subset['max_depth'],
-        subset['significance'],
-        label=f'eta={eta}'
-    )
-ax_eta.set_xlabel('n_estimators')
-ax_eta.set_ylabel('max_depth')
-ax_eta.set_zlabel('significance')
-ax_eta.set_title('Significance en fonction de n_estimators et max_depth (par eta)')
-ax_eta.legend()
+def courbes_nest_et_maxdepth ():
+    # Trouver toutes les combinaisons uniques de (eta, subsample)
+    unique_eta_subsample = np.unique(np.column_stack((eta, subsample)), axis=0)
 
-# Courbes 3D pour différentes valeurs de subsample
-subsamples = df['subsample'].unique()
-fig_sub = plt.figure(figsize=(10, 7))
-ax_sub = fig_sub.add_subplot(111, projection='3d')
-for subsample in subsamples:
-    subset = df[df['subsample'] == subsample]
-    ax_sub.plot(
-        subset['n_estimators'],
-        subset['max_depth'],
-        subset['significance'],
-        label=f'subsample={subsample}'
-    )
-ax_sub.set_xlabel('n_estimators')
-ax_sub.set_ylabel('max_depth')
-ax_sub.set_zlabel('significance')
-ax_sub.set_title('Significance en fonction de n_estimators et max_depth (par subsample)')
-ax_sub.legend()
+    # Tracer une figure pour chaque combinaison unique de (eta, subsample)
+    for eta_val, subsample_val in unique_eta_subsample:
+        # Créer une nouvelle figure pour chaque combinaison
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')  # Subgraphe 3D
 
-plt.show()
+        # Filtrer les données pour la combinaison (eta, subsample)
+        mask = (eta == eta_val) & (subsample == subsample_val)
+        x = n_estimators[mask]
+        y = max_depth[mask]
+        z = significance[mask]
+
+        # Pour avoir des courbes propres, trier selon n_estimators puis max_depth
+        sort_idx = np.lexsort((y, x))
+        x, y, z = x[sort_idx], y[sort_idx], z[sort_idx]
+
+        # Tracer la surface 3D ou les points
+        ax.plot_trisurf(x, y, z, cmap='viridis', edgecolor='none')
+
+        # Ajouter des titres et labels
+        ax.set_title(f'eta={eta_val}, subsample={subsample_val}')
+        ax.set_xlabel('n_estimators')
+        ax.set_ylabel('max_depth')
+        ax.set_zlabel('significance')
+
+        # Afficher chaque figure séparément
+        plt.tight_layout()
+        plt.show()
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def courbes_eta_et_subsample():
+    # Trouver toutes les combinaisons uniques de (n_estimators, max_depth)
+    unique_nest_maxdepth = np.unique(np.column_stack((n_estimators, max_depth)), axis=0)
+
+    # Tracer une figure pour chaque combinaison unique de (n_estimators, max_depth)
+    for nest_val, depth_val in unique_nest_maxdepth:
+        # Créer une nouvelle figure pour chaque combinaison (n_estimators, max_depth)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')  # Subgraphe 3D
+
+        # Filtrer les données pour la combinaison (n_estimators, max_depth)
+        mask = (n_estimators == nest_val) & (max_depth == depth_val)
+        x = eta[mask]  # Valeurs de eta
+        y = subsample[mask]  # Valeurs de subsample
+        z = significance[mask]  # Valeurs de significance
+
+        # Créer la surface 3D
+        ax.plot_trisurf(x, y, z, cmap='viridis', edgecolor='none')
+
+        # Ajouter des titres et labels
+        ax.set_title(f'Significance vs eta and subsample\n(n_estimators={nest_val}, max_depth={depth_val})')
+        ax.set_xlabel('eta')
+        ax.set_ylabel('subsample')
+        ax.set_zlabel('significance')
+
+        # Afficher chaque figure séparément
+        plt.tight_layout()
+        plt.show()
+
+# Appel de la fonction
+courbes_nest_et_maxdepth()
+#courbes_eta_et_subsample()
