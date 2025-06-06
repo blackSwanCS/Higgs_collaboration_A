@@ -365,6 +365,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
 
     try:
         from scipy.interpolate import interp1d
+
         left_interp = interp1d(
             delta_nll[left_mask],
             mu_vals[left_mask],
@@ -438,6 +439,7 @@ def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True)
 
     try:
         from scipy.interpolate import interp1d
+
         left_interp = interp1d(
             delta_nll[left_mask],
             mu_vals[left_mask],
@@ -460,9 +462,7 @@ def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True)
         delta_mu = 0.0
         print("Interpolation error:", e)
 
-    plt.plot(
-        mu_vals, delta_nll, label=r"Binned $\Delta$NLL", color="#4A90E2"
-    )
+    plt.plot(mu_vals, delta_nll, label=r"Binned $\Delta$NLL", color="#4A90E2")
     plt.axvline(
         mu_hat,
         color="#D0021B",
