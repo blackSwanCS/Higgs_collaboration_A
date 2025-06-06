@@ -36,7 +36,7 @@ class PFN_boosted_decision_tree(AbstractBoostedDecisionTree):
         super().predict_full_output(test_data, labels, weights)
         return self._model.predict_proba(self._scaler.transform(test_data))
 
-    def load_model(self):
+    def load_model(self, *args):
         return super().load_model()
 
     def save(self):

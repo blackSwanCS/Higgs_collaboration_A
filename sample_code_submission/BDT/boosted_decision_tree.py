@@ -1,4 +1,4 @@
-import sample_code_submission.BDT.XGB_boosted_decision_tree
+import BDT.XGB_boosted_decision_tree
 import numpy as np
 
 
