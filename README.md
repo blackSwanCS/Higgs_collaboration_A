@@ -1,2 +1,5 @@
-# Higgs_collaboration_A
-Collaboration repo for Higgs EL 1 A
+# Files to launch
+
+## BDT Training
+
+Launch the train_model.py file inside /sample_code_submision/BDT
