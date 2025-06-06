@@ -297,14 +297,44 @@ def impact_syst_bias_all(data, show=False, features=features_all):
     chi2_df = pd.DataFrame.from_dict(chi2_results, orient="index")
     return chi2_df
 
+<<<<<<< HEAD
+# To get the total importance of bias on each feature
+# returns a list of features sorted from major impact to lower impact
+def total_scores_systematic_importance(data,features=features_all):
+    importance = impact_syst_bias_all(data,features=features)
+    score = importance.sum(axis=1).to_dict()
+    score_total = {}
+    for key, value in score.items():
+        base_feature = key.replace(' (signal)', '').replace(' (background)', '')
+        score_total[base_feature] = score_total.get(base_feature, 0) + value
+    # Create a bar chart
+    plt.figure(figsize=(10, 6))
+    plt.bar(score_total.keys(), score_total.values(), color='skyblue')
+
+    # Add labels and title
+    plt.xlabel('Features')
+    plt.ylabel('Score')
+    plt.title('Total Impact of bias Score')
+=======
 
 # module_path = os.path.join(os.getcwd(), "sample_code_submission", "BDT")
 # if module_path not in sys.path:
 #   sys.path.append(module_path)
 
 # import sample_code_submission.BDT.boosted_decision_tree as BoostedDecisionTree
+>>>>>>> 2c865e874c57a60b8cec9c2c42a5e99e1e721fd5
 
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, ha='right')
 
+    # Adjust layout to prevent clipping of labels
+    plt.tight_layout()
+
+    # Display the plot
+    plt.show()
+    return sorted(score_total.keys(), key=lambda k: score_total[k], reverse=True)
+
+# THIS FUNCTION DOESNT WORK it was supposed to get the feature importance with BDT
 def minimal_dependent_features(data):
     """
     Uses permutation importance on BoostedDecisionTree to get top 10 important features.
@@ -333,3 +363,124 @@ def minimal_dependent_features(data):
     ).sort_values(by="Importance", ascending=False)
 
     return importance_df["Feature"].head(10).tolist()
+
+
+from tensorflow.keras.models import load_model
+ 
+# Assuming the model is stored as 'model.h5'
+model = load_model("sample_code_submission/Best_NN_Model/model.h5")
+ 
+import torch
+from torch.autograd import grad
+ 
+# Assume `model` is your trained neural network and `data_loader` provides your dataset.
+ 
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+ 
+def preprocess_data(data, expected_features=28):
+    # Convert categorical variables to numeric (if needed)
+    data = pd.get_dummies(data, drop_first=True)
+ 
+    # Remove label column to handle only features
+    if 'labels' in data.columns:
+        features = data.drop(columns=['labels'])
+    else:
+        features = data
+ 
+    n_features = features.shape[1]
+ 
+    if n_features < expected_features:
+        # Add zero columns to pad up to expected features
+        for i in range(expected_features - n_features):
+            features[f'dummy_{i}'] = 0
+    elif n_features > expected_features:
+        # Truncate extra features
+        features = features.iloc[:, :expected_features]
+ 
+    # If label exists, add it back to dataframe
+    if 'labels' in data.columns:
+        features['labels'] = data['labels'].values
+ 
+    return features
+  
+# Feature importance with NN
+def compute_feature_importance(data):
+    expected_features = model.input_shape[-1]  # should be 28
+ 
+    data = preprocess_data(data, expected_features)
+ 
+    features = data.drop(columns=["labels"])
+    labels = data["labels"]
+ 
+    inputs_tensor = tf.convert_to_tensor(features.values, dtype=tf.float32)
+ 
+    feature_importance = np.zeros(features.shape[1])
+ 
+    batch_size = 32
+    for start_idx in range(0, len(features), batch_size):
+        end_idx = min(start_idx + batch_size, len(features))
+        inputs_batch = inputs_tensor[start_idx:end_idx]
+ 
+        with tf.GradientTape() as tape:
+            tape.watch(inputs_batch)
+            predictions = model(inputs_batch)
+ 
+        gradients = tape.gradient(predictions, inputs_batch)
+        feature_importance += np.sum(np.abs(gradients.numpy()), axis=0)
+ 
+    feature_importance /= len(features)
+   
+   
+    importance_series = pd.Series(feature_importance, index=features.columns)
+ 
+    # Sort all features descending
+    importance_sorted = importance_series.sort_values(ascending=False)
+ 
+    # Plot
+    plt.figure(figsize=(10, 6))
+    importance_sorted.plot(kind='bar')
+    plt.title('Feature Importance Ranking')
+    plt.ylabel('Importance Score (sum of absolute gradients)')
+    plt.xlabel('Features')
+    plt.tight_layout()
+    plt.show()
+ 
+    # Return as dict sorted best to worst
+    return importance_sorted.to_dict()
+
+# get a plot of systematic impact and feature importance
+def plot_bias_importance(data):
+    importance = impact_syst_bias_all(data,features=features)
+    score = importance.sum(axis=1).to_dict()
+    score_total = {}
+    for key, value in score.items():
+        base_feature = key.replace(' (signal)', '').replace(' (background)', '')
+        score_total[base_feature] = score_total.get(base_feature, 0) + value
+    feature_importance_dict = compute_feature_importance(data)
+    features = list(feature_importance_dict.keys())
+    importance_values = np.array([feature_importance_dict[feat] for feat in features])
+    score_values = np.array([score_total.get(feat, 0) for feat in features])
+
+    # Asignar colores únicos
+    colors = np.random.rand(len(features))
+
+    # Crear gráfico
+    plt.figure(figsize=(10, 6))
+    plt.scatter(score_values, importance_values, c=colors, cmap='rainbow', edgecolors='black')
+
+    # Etiquetar puntos
+    for i, feature in enumerate(features):
+        plt.annotate(feature, (score_values[i], importance_values[i]), fontsize=8, alpha=0.7)
+
+    # Etiquetas de los ejes
+    plt.yscale("log")
+    plt.xlabel("Score of bias impact")
+    plt.ylabel("Feature Importance")
+    plt.title("Feature Importance vs. Score")
+    plt.colorbar(label="Feature Color Mapping")
+
+    # Mostrar gráfico
+    plt.show()
