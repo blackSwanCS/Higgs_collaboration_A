@@ -12,6 +12,7 @@ class NeuralNetwork:
 
     """
 
+
     def __init__(self, train_data):
         self.model = Sequential()
         self.layers = 10
