@@ -39,3 +39,14 @@ def get_best_model():
         "eval_metric": "logloss",
     }
     return BDT.xgb_boosted_decision_tree.XGBBoostedDecisionTree(params)"""
+
+def get_model_with_best_param():
+    params = {
+        "n_estimators": np.int64(191),
+        "max_depth": np.int64(5),
+        "max_leaves": np.int64(0),
+        "objective": "binary:logistic",
+        "use_label_encoder": False,
+        "eval_metric": "logloss",
+    }
+    return XGB_boosted_decision_tree.XGBBoostedDecisionTree(params)

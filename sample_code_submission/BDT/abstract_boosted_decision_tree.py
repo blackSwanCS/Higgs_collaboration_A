@@ -176,13 +176,13 @@ class AbstractBoostedDecisionTree(ABC):
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-        auc_test = self.auc()
+        auc = self.auc()
         plt.plot(
             fpr_xgb,
             tpr_xgb,
             color="darkgreen",
             lw=2,
-            label="XGBoost (AUC  = {:.3f})".format(auc_test),
+            label="XGBoost (AUC  = {:.3f})".format(auc),
         )
         plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
         plt.xlim([0.0, 1.0])
@@ -197,7 +197,7 @@ class AbstractBoostedDecisionTree(ABC):
         vams = self.vamsasimov(val_labels, test_weights)
         x = np.linspace(0, 1, num=len(vams))
         significance = self.significance(val_labels)
-        plt.plot(x, vams, "+", label="(Z = {:.2f})".format(significance))
+        plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
         plt.title(f"BDT Significance for {self.__name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
