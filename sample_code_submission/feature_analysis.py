@@ -297,7 +297,6 @@ def impact_syst_bias_all(data, show=False, features=features_all):
     chi2_df = pd.DataFrame.from_dict(chi2_results, orient="index")
     return chi2_df
 
-<<<<<<< HEAD
 # To get the total importance of bias on each feature
 # returns a list of features sorted from major impact to lower impact
 def total_scores_systematic_importance(data,features=features_all):
@@ -315,14 +314,12 @@ def total_scores_systematic_importance(data,features=features_all):
     plt.xlabel('Features')
     plt.ylabel('Score')
     plt.title('Total Impact of bias Score')
-=======
 
 # module_path = os.path.join(os.getcwd(), "sample_code_submission", "BDT")
 # if module_path not in sys.path:
 #   sys.path.append(module_path)
 
 # import sample_code_submission.BDT.boosted_decision_tree as BoostedDecisionTree
->>>>>>> 2c865e874c57a60b8cec9c2c42a5e99e1e721fd5
 
     # Rotate x-axis labels for better readability
     plt.xticks(rotation=45, ha='right')
