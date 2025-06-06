@@ -240,7 +240,7 @@ class Model:
         test_weights = test_set["weights"]
 
         predictions = self.model.predict(test_data)
-
+        self.saved_info = calculate_saved_info(self.model, self.holdout_set)
         if "beta" not in self.saved_info:
             self.saved_info["beta"] = 0.0
         if "gamma" not in self.saved_info:

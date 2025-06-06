@@ -33,11 +33,11 @@ Task 2 : Systematic Uncertainty
 #################################################
 INF = 0
 MAX = 1  # To redefine in the code
-NUMBER_OF_BINS = 100
+NUMBER_OF_BINS = 8
 BINS = np.linspace(INF, MAX, NUMBER_OF_BINS)
 
 
-def compute_mu(score, weight, saved_info, method="Likelihood"):
+def compute_mu(score, weight, saved_info, method="Binned_Likelihood"):
     """
     Perform calculations to calculate mu
     Dummy code, replace with actual calculations
@@ -62,12 +62,12 @@ def compute_mu(score, weight, saved_info, method="Likelihood"):
             saved_info["beta"],
             1,
         )
-        plot_likelihood(
-            np.sum(score_flat * weight),
-            saved_info["gamma"],
-            saved_info["beta"],
-            mu,
-        )
+        # plot_likelihood(
+        #     np.sum(score_flat * weight),
+        #     saved_info["gamma"],
+        #     saved_info["beta"],
+        #     mu,
+        # )
 
     # Compute mu with likelihood and tes and jes
     elif method == "Likelihood+Systematics":
@@ -205,19 +205,19 @@ def calculate_saved_info(model, holdout_set, method="AMS"):
         best_threshold = threshold[best_idx]
 
         # Uncomment to plot AMS
-        plt.plot(threshold, ams, label="ams")
-        plt.axvline(
-            best_threshold,
-            color="green",
-            linestyle="--",
-            label=f"Best threshold = {best_threshold:.3f}",
-        )
-        plt.xlabel("Threshold")
-        plt.ylabel("AMS")
-        plt.grid()
-        plt.title("AMS vs Threshold")
-        plt.legend()
-        plt.show()
+        # plt.plot(threshold, ams, label="ams")
+        # plt.axvline(
+        #     best_threshold,
+        #     color="green",
+        #     linestyle="--",
+        #     label=f"Best threshold = {best_threshold:.3f}",
+        # )
+        # plt.xlabel("Threshold")
+        # plt.ylabel("AMS")
+        # plt.grid()
+        # plt.title("AMS vs Threshold")
+        # plt.legend()
+        # plt.show()
 
     # Calculate saved_info with this optimised cutoff
     score_flat = score.flatten() > best_threshold
