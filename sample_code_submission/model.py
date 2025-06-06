@@ -159,6 +159,11 @@ class Model:
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
+        holdout_sig = self.model.significance(
+            self.holdout_set["labels"], self.holdout_set["weights"]
+        )
+        self.holdout_sig = holdout_sig
+        print("Holdout Significance: ", holdout_sig)
         print(
             "Significance",
             self.model.significance(
@@ -210,12 +215,19 @@ class Model:
             "score",
         )
 
+        self.auc = roc_auc_score(
+            y_true=self.valid_set["labels"],
+            y_score=valid_score,
+            sample_weight=self.valid_set["weights"],
+        )
+
         roc_curve_wrapper(
             score=valid_score,
             labels=self.valid_set["labels"],
             weights=self.valid_set["weights"],
             plot_label="valid_set" + self.name,
         )
+        return holdout_sig
 
     def predict(self, test_set):
         """

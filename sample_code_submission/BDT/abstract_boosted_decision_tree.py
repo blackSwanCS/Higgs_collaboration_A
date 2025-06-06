@@ -12,7 +12,24 @@ from abc import ABC, abstractmethod
 import json
 
 # constants
-from BDT.constants import *
+import os
+import sys
+
+
+def find_and_add_module_path(filename):
+    cur = os.path.abspath(os.path.dirname(__file__))
+    for _ in range(3):
+        candidate = os.path.join(cur, filename)
+        if os.path.isfile(candidate):
+            if cur not in sys.path:
+                sys.path.insert(0, cur)
+            return
+        cur = os.path.dirname(cur)
+
+
+find_and_add_module_path("constants.py")
+
+from constants import *
 
 # Curves
 import matplotlib.pyplot as plt
@@ -69,7 +86,7 @@ class AbstractBoostedDecisionTree(ABC):
 
     def vamsasimov(self, test_labels=None, test_weights=None):
         """
-        Calculate the tab of significance  for differents treshold of the predicted data using the AMS (A More Sensitive) method.
+        Calculate the tab of significance for different thresholds of the predicted data using the AMS (A More Sensitive) method.
         """
 
         if self.__status != BDT_Status.PREDICTED:
@@ -159,13 +176,13 @@ class AbstractBoostedDecisionTree(ABC):
             y_score=self._predicted_data,
             sample_weight=self.__test_weights,
         )
-        auc_test = self.auc()
+        auc = self.auc()
         plt.plot(
             fpr_xgb,
             tpr_xgb,
             color="darkgreen",
             lw=2,
-            label="XGBoost (AUC  = {:.3f})".format(auc_test),
+            label="XGBoost (AUC  = {:.3f})".format(auc),
         )
         plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
         plt.xlim([0.0, 1.0])
@@ -180,7 +197,7 @@ class AbstractBoostedDecisionTree(ABC):
         vams = self.vamsasimov(val_labels, test_weights)
         x = np.linspace(0, 1, num=len(vams))
         significance = self.significance(val_labels)
-        plt.plot(x, vams, "+", label="(Z = {:.2f})".format(significance))
+        plt.plot(x, vams, label="(Z = {:.2f})".format(significance))
         plt.title(f"BDT Significance for {self.__name} ")
         plt.xlabel("Threshold")
         plt.ylabel("Significance")
@@ -198,17 +215,20 @@ class AbstractBoostedDecisionTree(ABC):
             self.__test_weights = np.asarray(weights)
 
     @abstractmethod
-    def load_model(self):
+    def load_model(self, *args):
         if self.__status != BDT_Status.NOT_FITTED:
-            raise ValueError(
-                "Model has already been fitted, please create a new instance to load a new model."
+            warnings.warn(
+                "Model has already been fitted, please create a new instance to load a new model.",
+                UserWarning,
             )
+            return True
         with open(BEST_BDT_MODEL_PATH + "_scaler.json", "r") as f:
             scaler_params = json.load(f)
         self._scaler = StandardScaler()
         self._scaler.mean_ = scaler_params["mean_"]
         self._scaler.scale_ = scaler_params["scale_"]
         self.__status = BDT_Status.FITTED
+        return False
 
     @abstractmethod
     def save(self):
