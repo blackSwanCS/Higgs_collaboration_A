@@ -275,7 +275,7 @@ def likelihood_fit_mu(n_obs, S, B, mu_init):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)  # Avoid log(0)
-        return -(n_obs * np.log(lam) - lam) #+ 0.5 * ((mu - 1) / 1.03) ** 2
+        return -(n_obs * np.log(lam) - lam)  # + 0.5 * ((mu - 1) / 1.03) ** 2
 
     m = Minuit(neg_ll, mu=mu_init)
     m.limits["mu"] = (0, None)
@@ -298,7 +298,7 @@ def likelihood_fit_mu_binned(
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)  # avoid log(0)
-        return -np.sum(N_obs * np.log(pred) - pred) #+ 0.5 * ((mu - 1) / 1.03) ** 2
+        return -np.sum(N_obs * np.log(pred) - pred)  # + 0.5 * ((mu - 1) / 1.03) ** 2
 
     # Fit using Minuit
     m = Minuit(neg_ll, mu=mu_init)
@@ -347,7 +347,7 @@ def plot_likelihood(n_obs, S, B, mu_hat, plot_show=True):
     def neg_ll(mu):
         lam = mu * S + B
         lam = np.clip(lam, 1e-10, None)
-        return -(n_obs * np.log(lam) - lam) #+ 0.5 * ((mu - 1) / 1.03) ** 2
+        return -(n_obs * np.log(lam) - lam)  # + 0.5 * ((mu - 1) / 1.03) ** 2
 
     # Scan a wide range first
     mu_vals_full = np.linspace(0, 5, 1000)
@@ -421,7 +421,7 @@ def plot_binned_likelihood(N_obs, gamma_hist, beta_hist, mu_hat, plot_show=True)
     def neg_ll(mu):
         pred = mu * gamma_hist + beta_hist
         pred = np.clip(pred, 1e-10, None)
-        return -np.sum(N_obs * np.log(pred) - pred) #+ 0.5 * ((mu - 1) / 1.03) ** 2
+        return -np.sum(N_obs * np.log(pred) - pred)  # + 0.5 * ((mu - 1) / 1.03) ** 2
 
     # Scan a wide range first
     mu_vals_full = np.linspace(0, 5, 1000)
