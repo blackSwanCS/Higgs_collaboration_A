@@ -16,16 +16,16 @@ significance = data[:, -1]
 
 
 def courbes_nest_et_maxdepth():
-    # Trouver toutes les combinaisons uniques de (eta, subsample)
+    # Trouver toutes les combinations uniques de (eta, subsample)
     unique_eta_subsample = np.unique(np.column_stack((eta, subsample)), axis=0)
 
-    # Tracer une figure pour chaque combinaison unique de (eta, subsample)
+    # Tracer une figure pour chaque combination unique de (eta, subsample)
     for eta_val, subsample_val in unique_eta_subsample:
-        # Créer une nouvelle figure pour chaque combinaison
+        # Créer une nouvelle figure pour chaque combination
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")  # Subgraphe 3D
 
-        # Filtrer les données pour la combinaison (eta, subsample)
+        # Filtrer les données pour la combination (eta, subsample)
         mask = (eta == eta_val) & (subsample == subsample_val)
         x = n_estimators[mask]
         y = max_depth[mask]
@@ -55,16 +55,16 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def courbes_eta_et_subsample():
-    # Trouver toutes les combinaisons uniques de (n_estimators, max_depth)
+    # Trouver toutes les combinations uniques de (n_estimators, max_depth)
     unique_nest_maxdepth = np.unique(np.column_stack((n_estimators, max_depth)), axis=0)
 
-    # Tracer une figure pour chaque combinaison unique de (n_estimators, max_depth)
+    # Tracer une figure pour chaque combination unique de (n_estimators, max_depth)
     for nest_val, depth_val in unique_nest_maxdepth:
-        # Créer une nouvelle figure pour chaque combinaison (n_estimators, max_depth)
+        # Créer une nouvelle figure pour chaque combination (n_estimators, max_depth)
         fig = plt.figure()
         ax = fig.add_subplot(111, projection="3d")  # Subgraphe 3D
 
-        # Filtrer les données pour la combinaison (n_estimators, max_depth)
+        # Filtrer les données pour la combination (n_estimators, max_depth)
         mask = (n_estimators == nest_val) & (max_depth == depth_val)
         x = eta[mask]  # Valeurs de eta
         y = subsample[mask]  # Valeurs de subsample
@@ -87,7 +87,7 @@ def courbes_eta_et_subsample():
 
 
 def courbe_significance():
-    """trace la moyenne de la significance en fonction de n_estimators. (la moyenne sur les valeurs
+    """trace la moyenne de la significance en function de n_estimators. (la moyenne sur les valeurs
     de paramètres eta, max_depth et subsample)"""
     # Charger les données
     data = np.loadtxt(
@@ -122,7 +122,7 @@ def courbe_significance():
     # Convertir la liste en array pour une utilisation facile avec matplotlib
     mean_significance = np.array(mean_significance)
 
-    # Tracer la moyenne de la significance en fonction de n_estimators
+    # Tracer la moyenne de la significance en function de n_estimators
     plt.figure(figsize=(10, 6))
     plt.plot(
         unique_n_estimators,
@@ -141,7 +141,7 @@ def courbe_significance():
     plt.show()
 
 
-# Appel de la fonction
+# Appel de la function
 courbe_significance()
 # courbes_nest_et_maxdepth()
 # courbes_eta_et_subsample()
