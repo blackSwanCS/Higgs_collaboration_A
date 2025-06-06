@@ -24,7 +24,7 @@ for eta in etas:
 ax_eta.set_xlabel("n_estimators")
 ax_eta.set_ylabel("max_depth")
 ax_eta.set_zlabel("significance")
-ax_eta.set_title("Significance en fonction de n_estimators et max_depth (par eta)")
+ax_eta.set_title("Significance en function de n_estimators et max_depth (par eta)")
 ax_eta.legend()
 
 # Courbes 3D pour différentes valeurs de subsample
@@ -43,7 +43,7 @@ ax_sub.set_xlabel("n_estimators")
 ax_sub.set_ylabel("max_depth")
 ax_sub.set_zlabel("significance")
 ax_sub.set_title(
-    "Significance en fonction de n_estimators et max_depth (par subsample)"
+    "Significance en function de n_estimators et max_depth (par subsample)"
 )
 ax_sub.legend()
 
