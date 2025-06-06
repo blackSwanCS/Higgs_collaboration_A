@@ -133,7 +133,6 @@ def roc_curve_wrapper(score, labels, weights, plot_label="model", color="b", lw=
     """
 
     auc = roc_auc_score(y_true=labels, y_score=score, sample_weight=weights)
-
     plt.figure(figsize=(8, 7))
 
     fpr, tpr, _ = roc_curve(y_true=labels, y_score=score, sample_weight=weights)

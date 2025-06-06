@@ -1,21 +1,33 @@
-from tensorflow.keras.models import Sequential
+import tensorflow as tf
+
+tf.config.run_functions_eagerly(True)
+
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import StandardScaler
+<<<<<<< HEAD
 import numpy as np
 import matplotlib.pyplot as plt
+=======
+import os
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
 
 
 class NeuralNetwork:
     """
-    This Dummy class implements a neural network classifier
-    change the code in the fit method to implement a neural network classifier
-
-
+    This class implements a neural network classifier.
     """
 
-    def __init__(self, train_data):
-        self.model = Sequential()
+    def __init__(self, train_data=None):
+        self.model = None
+        self.scaler = StandardScaler()
 
+        if train_data is not None:
+            self._initialize_model(train_data)
+
+    def _initialize_model(self, train_data):
+        """Initialize the model architecture."""
+        self.model = Sequential()
         n_dim = train_data.shape[1]
 
         self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
@@ -25,7 +37,6 @@ class NeuralNetwork:
         self.model.compile(
             loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"]
         )
-        self.scaler = StandardScaler()
 
     def fit(self, train_data, y_train, weights_train=None):
         # Fit the scaler on the training data
