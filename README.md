@@ -19,11 +19,11 @@ Goede, Fernanda Andréa Gutierrez
 
 Pour effectuer des tests d'optimisation sur le réseau de neurones créé, veuillez vous rendre sur la **branche NN_test_opti** :
 
-```bash
+bash
 git checkout NN_test_opti
 
 
-# Files to launch
+## Files to launch
 
 ## BDT Training
 
