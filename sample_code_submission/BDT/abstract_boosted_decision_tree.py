@@ -198,17 +198,17 @@ class AbstractBoostedDecisionTree(ABC):
             self.__test_weights = np.asarray(weights)
 
     @abstractmethod
-    def load_model(self):
+    def load_model(self, *args):
         if self.__status != BDT_Status.NOT_FITTED:
-            raise ValueError(
-                "Model has already been fitted, please create a new instance to load a new model."
-            )
+            warnings.warn("Model has already been fitted, please create a new instance to load a new model.", UserWarning)
+            return True
         with open(BEST_BDT_MODEL_PATH + "_scaler.json", "r") as f:
             scaler_params = json.load(f)
         self._scaler = StandardScaler()
         self._scaler.mean_ = scaler_params["mean_"]
         self._scaler.scale_ = scaler_params["scale_"]
         self.__status = BDT_Status.FITTED
+        return False
 
     @abstractmethod
     def save(self):

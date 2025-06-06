@@ -38,8 +38,9 @@ class XGBBoostedDecisionTree(AbstractBoostedDecisionTree):
         super().predict_full_output(test_data, labels, weights)
         return self._model.predict_proba(self._scaler.transform(test_data))
 
-    def load_model(self):
-        super().load_model()
+    def load_model(self, *args):
+        if super().load_model():
+            return
         self._model.load_model(BEST_BDT_MODEL_PATH + ".json")
 
     def save(self):
