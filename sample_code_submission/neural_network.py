@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class NeuralNetwork:
     """
     This Dummy class implements a neural network classifier
@@ -31,7 +32,9 @@ class NeuralNetwork:
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
         # Fit the model using the transformed data
-        self.model.fit(X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2)
+        self.model.fit(
+            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
+        )
 
     def predict(self, test_data, labels=None, weights=None):
         test_data = self.scaler.transform(test_data)
@@ -52,8 +55,9 @@ class NeuralNetwork:
         if test_weights is not None:
             self.__test_weights = np.asarray(test_weights)
         if self.__test_labels is None:
-            raise ValueError("True labels for test data are not available. Please provide them when calling predict().")
-        
+            raise ValueError(
+                "True labels for test data are not available. Please provide them when calling predict()."
+            )
 
         def __amsasimov(s_in, b_in):
             s = np.copy(s_in)
@@ -87,10 +91,10 @@ class NeuralNetwork:
         vamsasimov_xgb = __significance_vscore(
             y_true=self.__test_labels,
             y_score=self.__predicted_data,
-            sample_weight= self.__test_weights,
+            sample_weight=self.__test_weights,
         )
-        
-        plt.plot(np.linspace(0, 1.0, 100), vamsasimov_xgb, label='AMS Significance')
-        plt.xlabel('Score')
-        plt.ylabel('Significance')
+
+        plt.plot(np.linspace(0, 1.0, 100), vamsasimov_xgb, label="AMS Significance")
+        plt.xlabel("Score")
+        plt.ylabel("Significance")
         return np.max(vamsasimov_xgb)
