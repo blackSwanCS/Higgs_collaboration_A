@@ -6,6 +6,11 @@ from statistical_analysis import calculate_saved_info, compute_mu
 BDT = True
 NN = True
 
+<<<<<<< HEAD
+from statistical_analysis import calculate_saved_info, compute_mu
+import numpy as np
+from sklearn.metrics import roc_auc_score
+=======
 
 def _clean_saved_info(info):
     """
@@ -20,6 +25,7 @@ def _clean_saved_info(info):
         except TypeError:
             cleaned[key] = str(value)
     return cleaned
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
 
 
 class Model:
@@ -56,6 +62,20 @@ class Model:
         }
         del training_df
 
+<<<<<<< HEAD
+        self.systematics = systematics
+
+        print(
+            "sum_signal_weights: ",
+            self.training_set["weights"][self.training_set["labels"] == 1].sum(),
+        )
+        print(
+            "sum_bkg_weights: ",
+            self.training_set["weights"][self.training_set["labels"] == 0].sum(),
+        )
+
+=======
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
         valid_df = get_train_set(selected_indices=valid_indices)
         self.valid_set = {
             "labels": valid_df.pop("labels"),
@@ -74,20 +94,48 @@ class Model:
         }
         del holdout_df
 
+<<<<<<< HEAD
+        print()
+        print(
+            "sum_signal_weights: ",
+            self.holdout_set["weights"][self.holdout_set["labels"] == 1].sum(),
+        )
+        print(
+            "sum_bkg_weights: ",
+            self.holdout_set["weights"][self.holdout_set["labels"] == 0].sum(),
+        )
+        print(" \n ")
+=======
         # Path for saving/loading the model
         self.model_dir = os.path.dirname(os.path.abspath(__file__))
         self.model_path = os.path.join(self.model_dir, "saved_model")
         self.model_type = model_type
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
 
         # Initialize saved_info (will be updated after training)
         self.saved_info = {}
 
+<<<<<<< HEAD
+        if model_type == "BDT":
+            import BDT.boosted_decision_tree
+
+            self.model = BDT.boosted_decision_tree.get_best_model()
+        elif model_type == "NN":
+            from neural_network import NeuralNetwork
+
+            self.model = NeuralNetwork(train_data=self.training_set["data"])
+        elif model_type == "sample_model":
+            from sample_model import SampleModel
+
+            self.model = SampleModel()
+=======
         # Load or initialize the model
         model_file = os.path.join(self.model_path, "model.h5")
         if os.path.exists(self.model_path) and os.path.exists(model_file):
             print("Loading pre-trained model...")
             self.load_model()
             self.is_trained = True
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
         else:
             print("No pre-trained model found. Initializing a new model.")
             self.initialize_model()
@@ -154,11 +202,17 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
+
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
+<<<<<<< HEAD
+        holdout_sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
+        self.holdout_sig = holdout_sig
+        print("Holdout Significance: ", holdout_sig)
+=======
         print(
             "Significance",
             self.model.significance(
@@ -170,6 +224,7 @@ class Model:
             self.model.auc(self.holdout_set["labels"], self.holdout_set["weights"]),
         )
 
+>>>>>>> 4580de4a8757b93b4d819cd45ce96fd55bf3c497
         self.valid_set = self.systematics(self.valid_set)
 
         valid_score = self.model.predict(self.valid_set["data"])
@@ -210,12 +265,19 @@ class Model:
             "score",
         )
 
+        self.auc = roc_auc_score(
+            y_true=self.valid_set["labels"],
+            y_score=valid_score,
+            sample_weight=self.valid_set["weights"],
+        )
+
         roc_curve_wrapper(
             score=valid_score,
             labels=self.valid_set["labels"],
             weights=self.valid_set["weights"],
             plot_label="valid_set" + self.name,
         )
+        return holdout_sig
 
     def predict(self, test_set):
         """
