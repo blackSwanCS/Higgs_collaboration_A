@@ -200,7 +200,10 @@ class AbstractBoostedDecisionTree(ABC):
     @abstractmethod
     def load_model(self, *args):
         if self.__status != BDT_Status.NOT_FITTED:
-            warnings.warn("Model has already been fitted, please create a new instance to load a new model.", UserWarning)
+            warnings.warn(
+                "Model has already been fitted, please create a new instance to load a new model.",
+                UserWarning,
+            )
             return True
         with open(BEST_BDT_MODEL_PATH + "_scaler.json", "r") as f:
             scaler_params = json.load(f)

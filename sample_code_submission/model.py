@@ -154,13 +154,14 @@ class Model:
             train_score, self.training_set["weights"], self.saved_info
         )
 
-
         holdout_score = self.model.predict(self.holdout_set["data"])
         holdout_results = compute_mu(
             holdout_score, self.holdout_set["weights"], self.saved_info
         )
 
-        holdout_sig = self.model.significance(self.holdout_set["labels"], self.holdout_set["weights"])
+        holdout_sig = self.model.significance(
+            self.holdout_set["labels"], self.holdout_set["weights"]
+        )
         self.holdout_sig = holdout_sig
         print("Holdout Significance: ", holdout_sig)
         print(
