@@ -281,10 +281,13 @@ class Model:
             from BDT.boosted_decision_tree import get_best_model
 
             self.model = get_best_model()
+        elif self.model_type == "sample_model": # By default use BDT
+            from BDT.boosted_decision_tree import get_best_model
+
+            self.model = get_best_model()
         else:
             raise ValueError(f"Unknown model type: {self.model_type}")
 
-        self.model.load_model(self.model_path)
         info_path = os.path.join(self.model_path, "saved_info.json")
         if os.path.exists(info_path):
             with open(info_path, "r") as f:

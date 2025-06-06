@@ -27,8 +27,19 @@ class NeuralNetwork:
         self.model = Sequential()
         n_dim = train_data.shape[1]
 
-        self.model.add(Dense(100, input_dim=n_dim, activation="relu"))
-        self.model.add(Dense(100, activation="relu"))
+        self.model.add(Dense(325, input_dim=n_dim, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
+        self.model.add(Dense(325, activation="relu"))
         self.model.add(Dense(1, activation="sigmoid"))
 
         self.model.compile(
@@ -45,7 +56,7 @@ class NeuralNetwork:
         self.scaler.fit_transform(train_data)
         X_train = self.scaler.transform(train_data)
         self.model.fit(
-            X_train, y_train, sample_weight=weights_train, epochs=5, verbose=2
+            X_train, y_train, sample_weight=weights_train, epochs=25, verbose=2
         )
 
     def predict(self, test_data, labels=None, weights=None):
